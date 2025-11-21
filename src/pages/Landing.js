@@ -1,9 +1,27 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Truck, Battery, Wifi, Zap } from 'lucide-react';
+import { ArrowRight, Truck, Battery, Wifi, Zap, Server } from 'lucide-react';
 import { motion } from 'framer-motion';
+import api from '../services/api';
 
 const Landing = () => {
+  const [backendOnline, setBackendOnline] = useState(true);
+
+  useEffect(() => {
+    const checkBackend = async () => {
+      try {
+        await api.get('/');
+        setBackendOnline(true);
+      } catch (error) {
+        setBackendOnline(false);
+      }
+    };
+
+    checkBackend();
+    const interval = setInterval(checkBackend, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -81,11 +99,23 @@ const Landing = () => {
           >
             <div className="relative w-full aspect-square max-w-lg">
               <div className="absolute inset-0 bg-gradient-to-tr from-primary to-secondary rounded-full blur-[100px] opacity-20 animate-pulse" />
-              <img
-                src="/teletable_hero_tech.webp"
-                alt="TeleTable Hero"
-                className="relative z-10 w-full h-full object-contain drop-shadow-2xl"
-              />
+              <motion.div
+                animate={{
+                  scale: [1, 1.05, 1],
+                  rotateY: [0, 10, 0, -10, 0]
+                }}
+                transition={{
+                  duration: 8,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+                className="relative z-10 w-full h-full flex items-center justify-center"
+              >
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary blur-3xl opacity-50" />
+                  <Truck className="relative w-64 h-64 text-primary drop-shadow-[0_0_40px_rgba(0,240,255,0.6)]" strokeWidth={1.5} />
+                </div>
+              </motion.div>
 
               {/* Floating Stats Cards */}
               <motion.div
@@ -116,6 +146,24 @@ const Landing = () => {
                   <div>
                     <div className="text-xs text-gray-400">Signal Strength</div>
                     <div className="text-lg font-bold text-white">Excellent</div>
+                  </div>
+                </div>
+              </motion.div>
+
+              <motion.div
+                animate={{ y: [0, -15, 0] }}
+                transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                className="absolute top-1/2 -right-4 p-4 glass-panel rounded-xl border border-white/10"
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 ${backendOnline ? 'bg-success/20' : 'bg-danger/20'} rounded-lg`}>
+                    <Server className={`w-6 h-6 ${backendOnline ? 'text-success' : 'text-danger'}`} />
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-400">Backend Status</div>
+                    <div className={`text-lg font-bold ${backendOnline ? 'text-success' : 'text-danger'}`}>
+                      {backendOnline ? 'Online' : 'Offline'}
+                    </div>
                   </div>
                 </div>
               </motion.div>
