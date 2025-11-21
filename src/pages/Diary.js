@@ -8,6 +8,7 @@ const Diary = () => {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingEntry, setEditingEntry] = useState(null);
   const [error, setError] = useState('');
 
   const fetchEntries = async () => {
@@ -28,7 +29,7 @@ const Diary = () => {
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this entry?')) return;
-    
+
     try {
       await api.delete('/diary', { data: { id } });
       fetchEntries();
@@ -37,9 +38,20 @@ const Diary = () => {
     }
   };
 
+  const handleEdit = (entry) => {
+    setEditingEntry(entry);
+    setShowForm(true);
+  };
+
   const handleSuccess = () => {
     setShowForm(false);
+    setEditingEntry(null);
     fetchEntries();
+  };
+
+  const handleCancel = () => {
+    setShowForm(false);
+    setEditingEntry(null);
   };
 
   return (
@@ -47,7 +59,10 @@ const Diary = () => {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Project Diary</h1>
         <button
-          onClick={() => setShowForm(true)}
+          onClick={() => {
+            setEditingEntry(null);
+            setShowForm(true);
+          }}
           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-gray-800 bg-primary hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
         >
           <Plus className="h-5 w-5 mr-2" />
@@ -66,13 +81,14 @@ const Diary = () => {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       ) : (
-        <DiaryList entries={entries} onDelete={handleDelete} />
+        <DiaryList entries={entries} onDelete={handleDelete} onEdit={handleEdit} />
       )}
 
       {showForm && (
         <DiaryForm
           onSuccess={handleSuccess}
-          onCancel={() => setShowForm(false)}
+          onCancel={handleCancel}
+          initialData={editingEntry}
         />
       )}
     </div>

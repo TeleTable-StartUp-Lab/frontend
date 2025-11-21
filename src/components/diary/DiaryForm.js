@@ -1,12 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
-import { X } from 'lucide-react';
+import { X, FileText } from 'lucide-react';
 
-const DiaryForm = ({ onSuccess, onCancel }) => {
+const DiaryForm = ({ onSuccess, onCancel, initialData = null }) => {
   const [text, setText] = useState('');
   const [workingMinutes, setWorkingMinutes] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (initialData) {
+      setText(initialData.text);
+      setWorkingMinutes(initialData.working_minutes);
+    }
+  }, [initialData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -14,72 +21,84 @@ const DiaryForm = ({ onSuccess, onCancel }) => {
     setError('');
 
     try {
+      // If editing, delete the old entry first (Workaround for no update endpoint)
+      if (initialData) {
+        await api.delete('/diary', { data: { id: initialData.id } });
+      }
+
       await api.post('/diary', {
         text,
         working_minutes: parseInt(workingMinutes, 10)
       });
       onSuccess();
     } catch (err) {
+      console.error(err);
       setError('Failed to save entry. Please try again.');
       setLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-      <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-        <div className="flex justify-between items-center p-4 border-b">
-          <h3 className="text-lg font-medium text-gray-900">New Diary Entry</h3>
-          <button onClick={onCancel} className="text-gray-400 hover:text-gray-500">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm overflow-y-auto h-full w-full flex items-center justify-center z-50">
+      <div className="relative glass-panel border border-white/10 rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+        <div className="flex justify-between items-center p-6 border-b border-white/10">
+          <h3 className="text-xl font-bold text-white flex items-center gap-2">
+            <FileText className="w-5 h-5 text-primary" />
+            {initialData ? 'Edit Diary Entry' : 'New Diary Entry'}
+          </h3>
+          <button onClick={onCancel} className="text-gray-400 hover:text-white transition-colors">
             <X className="h-6 w-6" />
           </button>
         </div>
-        
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {error && (
-            <div className="bg-red-50 text-red-700 p-3 rounded text-sm">
-              {error}
+            <div className="bg-danger/10 border-l-4 border-danger p-4 rounded-r">
+              <p className="text-sm text-danger">{error}</p>
             </div>
           )}
-          
+
           <div>
-            <label className="block text-sm font-medium text-gray-700">Activity Description</label>
+            <label className="block text-sm font-medium text-gray-400 mb-2">Activity Description</label>
             <textarea
               required
-              rows={4}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+              rows={6}
+              className="block w-full border border-white/10 rounded-xl bg-dark-800/50 text-gray-300 placeholder-gray-600 focus:outline-none focus:bg-dark-800 focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm p-4 transition-all"
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="What did you work on today?"
+              placeholder="What did you work on today? (Markdown supported: **bold**, - list, `code`)"
             />
+            <p className="mt-2 text-xs text-gray-500">
+              Supports Markdown: **bold**, *italic*, - lists, `code`
+            </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Duration (minutes)</label>
+            <label className="block text-sm font-medium text-gray-400 mb-2">Duration (minutes)</label>
             <input
               type="number"
               required
               min="1"
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+              className="block w-full border border-white/10 rounded-xl bg-dark-800/50 text-gray-300 placeholder-gray-600 focus:outline-none focus:bg-dark-800 focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm p-3 transition-all"
               value={workingMinutes}
               onChange={(e) => setWorkingMinutes(e.target.value)}
             />
           </div>
 
-          <div className="flex justify-end space-x-3 pt-4">
+          <div className="flex justify-end space-x-3 pt-2">
             <button
               type="button"
               onClick={onCancel}
-              className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              className="px-4 py-2 border border-white/10 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-gray-800 bg-primary hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
+              className="px-6 py-2 border border-transparent text-sm font-bold rounded-xl text-dark-900 bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 transition-all shadow-[0_0_15px_rgba(0,240,255,0.2)] hover:shadow-[0_0_25px_rgba(0,240,255,0.4)]"
             >
-              {loading ? 'Saving...' : 'Save Entry'}
+              {loading ? 'Saving...' : (initialData ? 'Update Entry' : 'Save Entry')}
             </button>
           </div>
         </form>

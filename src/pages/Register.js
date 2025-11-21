@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Lock, Mail, User } from 'lucide-react';
+import { Lock, Mail, User, ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const Register = () => {
   const [name, setName] = useState('');
@@ -23,48 +24,61 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
+    <div className="min-h-[80vh] flex items-center justify-center relative overflow-hidden">
+      {/* Background Elements */}
+      <div className="absolute top-0 right-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[100px] -z-10" />
+      <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-secondary/20 rounded-full blur-[100px] -z-10" />
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="max-w-md w-full space-y-8 glass-panel p-8 rounded-2xl shadow-2xl border border-white/10"
+      >
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
+          <h2 className="mt-2 text-center text-3xl font-bold text-white tracking-tight">
+            Create Account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-2 text-center text-sm text-gray-400">
             Already have an account?{' '}
-            <Link to="/login" className="font-medium text-primary hover:text-accent">
+            <Link to="/login" className="font-medium text-primary hover:text-primary-hover transition-colors">
               Sign in
             </Link>
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
-            <div className="bg-red-50 border-l-4 border-red-400 p-4">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="bg-danger/10 border-l-4 border-danger p-4 rounded-r-md"
+            >
               <div className="flex">
                 <div className="ml-3">
-                  <p className="text-sm text-red-700">{error}</p>
+                  <p className="text-sm text-danger font-medium">{error}</p>
                 </div>
               </div>
-            </div>
+            </motion.div>
           )}
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div className="relative">
+          <div className="space-y-4">
+            <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <User className="h-5 w-5 text-gray-400" />
+                <User className="h-5 w-5 text-gray-500 group-focus-within:text-primary transition-colors" />
               </div>
               <input
                 id="name"
                 name="name"
                 type="text"
                 required
-                className="appearance-none rounded-none rounded-t-md relative block w-full px-3 py-2 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
+                className="block w-full pl-10 pr-3 py-3 border border-white/10 rounded-xl leading-5 bg-dark-800/50 text-gray-300 placeholder-gray-500 focus:outline-none focus:bg-dark-800 focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm transition-all duration-200"
                 placeholder="Full Name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
             </div>
-            <div className="relative">
+            <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Mail className="h-5 w-5 text-gray-400" />
+                <Mail className="h-5 w-5 text-gray-500 group-focus-within:text-primary transition-colors" />
               </div>
               <input
                 id="email-address"
@@ -72,15 +86,15 @@ const Register = () => {
                 type="email"
                 autoComplete="email"
                 required
-                className="appearance-none relative block w-full px-3 py-2 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
+                className="block w-full pl-10 pr-3 py-3 border border-white/10 rounded-xl leading-5 bg-dark-800/50 text-gray-300 placeholder-gray-500 focus:outline-none focus:bg-dark-800 focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm transition-all duration-200"
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
-            <div className="relative">
+            <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-gray-400" />
+                <Lock className="h-5 w-5 text-gray-500 group-focus-within:text-primary transition-colors" />
               </div>
               <input
                 id="password"
@@ -88,7 +102,7 @@ const Register = () => {
                 type="password"
                 autoComplete="new-password"
                 required
-                className="appearance-none rounded-none rounded-b-md relative block w-full px-3 py-2 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
+                className="block w-full pl-10 pr-3 py-3 border border-white/10 rounded-xl leading-5 bg-dark-800/50 text-gray-300 placeholder-gray-500 focus:outline-none focus:bg-dark-800 focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm transition-all duration-200"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -99,13 +113,16 @@ const Register = () => {
           <div>
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-gray-800 bg-primary hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-xl text-dark-900 bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary focus:ring-offset-dark-900 transition-all duration-200 hover:shadow-[0_0_20px_rgba(0,240,255,0.3)]"
             >
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+                <ArrowRight className="h-5 w-5 text-dark-900/50 group-hover:text-dark-900 transition-colors" />
+              </span>
               Register
             </button>
           </div>
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 };

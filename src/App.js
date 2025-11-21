@@ -8,17 +8,19 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Diary from './pages/Diary';
+import BackendHealthCheck from './components/common/BackendHealthCheck';
 
 function App() {
   return (
     <AuthProvider>
       <Router>
+        <BackendHealthCheck />
         <Layout>
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            
+
             <Route
               path="/dashboard"
               element={
@@ -35,7 +37,7 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            
+
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Layout>

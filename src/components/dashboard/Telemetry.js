@@ -1,59 +1,76 @@
 import React from 'react';
-import { Activity, CheckCircle } from 'lucide-react';
+import { Activity, Zap, Navigation } from 'lucide-react';
 
 const Telemetry = () => {
-  // Mock data - in a real app this would come from the backend via polling or websocket
-  const status = "Bereit"; // "Bereit", "Fährt", "Fehler"
+  // Mock data
+  const status = "READY";
   const batteryLevel = 85;
   const lastOrder = "Mensa -> Zimmer 101";
 
   const getStatusColor = (s) => {
     switch (s) {
-      case 'Bereit': return 'text-green-500';
-      case 'Fährt': return 'text-blue-500';
-      case 'Fehler': return 'text-red-500';
+      case 'READY': return 'text-success';
+      case 'MOVING': return 'text-primary';
+      case 'ERROR': return 'text-danger';
       default: return 'text-gray-500';
     }
   };
 
   return (
-    <div className="bg-white overflow-hidden shadow rounded-lg">
-      <div className="p-5">
-        <div className="flex items-center">
-          <div className="flex-shrink-0">
-            <Activity className="h-6 w-6 text-gray-400" />
+    <div className="glass-panel rounded-xl p-6 border border-white/10 relative overflow-hidden group">
+      <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+        <Activity className="w-24 h-24 text-primary" />
+      </div>
+
+      <h3 className="text-lg font-medium text-gray-400 mb-6 flex items-center gap-2">
+        <Activity className="w-5 h-5 text-primary" />
+        Telemetry Status
+      </h3>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        {/* Status Display */}
+        <div className="bg-dark-800/50 rounded-lg p-4 border border-white/5">
+          <div className="text-sm text-gray-500 mb-1">System Status</div>
+          <div className={`text-3xl font-bold font-mono tracking-wider ${getStatusColor(status)}`}>
+            {status}
           </div>
-          <div className="ml-5 w-0 flex-1">
-            <dl>
-              <dt className="text-sm font-medium text-gray-500 truncate">Status</dt>
-              <dd className="flex items-baseline">
-                <div className={`text-2xl font-semibold ${getStatusColor(status)}`}>
-                  {status}
-                </div>
-              </dd>
-            </dl>
+          <div className="mt-2 flex items-center gap-2 text-xs text-gray-400">
+            <span className="w-2 h-2 rounded-full bg-success animate-pulse"></span>
+            Connection Stable
           </div>
         </div>
-      </div>
-      <div className="bg-gray-50 px-5 py-3">
-        <div className="text-sm">
-          <div className="flex justify-between mb-1">
-            <span className="font-medium text-gray-700">Battery Level</span>
-            <span className="text-gray-700">{batteryLevel}%</span>
+
+        {/* Battery Display */}
+        <div className="bg-dark-800/50 rounded-lg p-4 border border-white/5">
+          <div className="flex justify-between items-end mb-2">
+            <div className="text-sm text-gray-500">Battery Level</div>
+            <div className="text-2xl font-bold font-mono text-white">{batteryLevel}%</div>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2.5">
-            <div 
-              className="bg-primary h-2.5 rounded-full" 
+          <div className="w-full bg-dark-900 rounded-full h-2 border border-white/10">
+            <div
+              className="bg-gradient-to-r from-primary to-success h-full rounded-full transition-all duration-1000 relative"
               style={{ width: `${batteryLevel}%` }}
-            ></div>
+            >
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.8)]"></div>
+            </div>
+          </div>
+          <div className="mt-2 flex justify-between text-xs text-gray-400">
+            <span>24.5V</span>
+            <span className="flex items-center gap-1"><Zap className="w-3 h-3 text-warning" /> Discharging</span>
           </div>
         </div>
       </div>
-      <div className="border-t border-gray-200 px-5 py-3">
-         <div className="flex items-center text-sm text-gray-500">
-            <CheckCircle className="flex-shrink-0 mr-1.5 h-4 w-4 text-green-400" />
-            Last Order: {lastOrder}
-         </div>
+
+      <div className="mt-6 pt-6 border-t border-white/5">
+        <div className="flex items-center justify-between text-sm">
+          <div className="flex items-center text-gray-400">
+            <Navigation className="w-4 h-4 mr-2 text-primary" />
+            Last Route
+          </div>
+          <div className="font-mono text-white bg-dark-800 px-3 py-1 rounded border border-white/10">
+            {lastOrder}
+          </div>
+        </div>
       </div>
     </div>
   );

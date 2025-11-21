@@ -1,135 +1,185 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Menu, X, LogOut, User, Book, Activity } from 'lucide-react';
+import { Menu, X, LogOut, User, Book, Activity, Cpu } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import clsx from 'clsx';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [isOpen, setIsOpen] = React.useState(false);
+  const location = useLocation();
+  const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
+  const NavLink = ({ to, children, icon: Icon }) => {
+    const isActive = location.pathname === to;
+    return (
+      <Link
+        to={to}
+        className={clsx(
+          "relative px-3 py-2 text-sm font-medium transition-colors duration-200 flex items-center gap-2",
+          isActive ? "text-primary" : "text-gray-400 hover:text-white"
+        )}
+      >
+        {isActive && (
+          <motion.div
+            layoutId="navbar-indicator"
+            className="absolute inset-0 bg-primary/10 rounded-lg border border-primary/20"
+            initial={false}
+            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+          />
+        )}
+        <span className="relative z-10 flex items-center gap-2">
+          {Icon && <Icon className="w-4 h-4" />}
+          {children}
+        </span>
+      </Link>
+    );
+  };
+
   return (
-    <nav className="bg-white shadow-md">
+    <nav
+      className={clsx(
+        "fixed w-full z-50 transition-all duration-300 border-b border-transparent",
+        scrolled ? "bg-dark-900/80 backdrop-blur-md border-white/5" : "bg-transparent"
+      )}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          <div className="flex">
-            <div className="flex-shrink-0 flex items-center">
-              <Link to="/" className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                  <span className="text-gray-800 font-bold">T</span>
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center gap-2 group">
+              <div className="relative w-8 h-8 flex items-center justify-center">
+                <div className="absolute inset-0 bg-primary rounded-lg blur opacity-20 group-hover:opacity-40 transition-opacity" />
+                <div className="relative bg-dark-800 border border-primary/50 rounded-lg w-full h-full flex items-center justify-center">
+                  <Cpu className="w-5 h-5 text-primary" />
                 </div>
-                TeleTable
-              </Link>
-            </div>
-            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              <Link to="/" className="border-transparent text-gray-500 hover:border-primary hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                Home
-              </Link>
+              </div>
+              <span className="text-xl font-bold text-white tracking-tight">
+                Tele<span className="text-primary">Table</span>
+              </span>
+            </Link>
+
+            <div className="hidden sm:ml-10 sm:flex sm:space-x-4">
+              <NavLink to="/">Home</NavLink>
               {user && (
                 <>
-                  <Link to="/dashboard" className="border-transparent text-gray-500 hover:border-primary hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                    <Activity className="w-4 h-4 mr-1" />
-                    Dashboard
-                  </Link>
-                  <Link to="/diary" className="border-transparent text-gray-500 hover:border-primary hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                    <Book className="w-4 h-4 mr-1" />
-                    Tagebuch
-                  </Link>
+                  <NavLink to="/dashboard" icon={Activity}>Dashboard</NavLink>
+                  <NavLink to="/diary" icon={Book}>Tagebuch</NavLink>
                 </>
               )}
             </div>
           </div>
-          <div className="hidden sm:ml-6 sm:flex sm:items-center">
+
+          <div className="hidden sm:flex sm:items-center sm:space-x-4">
             {user ? (
-              <div className="flex items-center space-x-4">
-                <span className="text-gray-700 text-sm font-medium flex items-center">
-                  <User className="w-4 h-4 mr-1" />
-                  {user.name}
-                </span>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-dark-800 border border-white/10">
+                  <User className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium text-gray-300">{user.name}</span>
+                </div>
                 <button
                   onClick={handleLogout}
-                  className="bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                  className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
                 >
                   <LogOut className="w-5 h-5" />
                 </button>
               </div>
             ) : (
-              <div className="space-x-4">
-                <Link to="/login" className="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+              <div className="flex items-center gap-4">
+                <Link to="/login" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">
                   Login
                 </Link>
-                <Link to="/register" className="bg-primary text-gray-800 hover:bg-opacity-90 px-4 py-2 rounded-md text-sm font-medium shadow-sm">
+                <Link
+                  to="/register"
+                  className="px-4 py-2 text-sm font-medium text-dark-900 bg-primary rounded-lg hover:bg-primary-hover transition-colors shadow-[0_0_15px_rgba(0,240,255,0.3)] hover:shadow-[0_0_25px_rgba(0,240,255,0.5)]"
+                >
                   Register
                 </Link>
               </div>
             )}
           </div>
-          <div className="-mr-2 flex items-center sm:hidden">
+
+          <div className="flex items-center sm:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary"
+              className="text-gray-400 hover:text-white p-2"
             >
-              {isOpen ? <X className="block h-6 w-6" /> : <Menu className="block h-6 w-6" />}
+              {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile menu */}
-      {isOpen && (
-        <div className="sm:hidden">
-          <div className="pt-2 pb-3 space-y-1">
-            <Link to="/" className="bg-primary bg-opacity-10 border-primary text-primary block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
-              Home
-            </Link>
-            {user && (
-              <>
-                <Link to="/dashboard" className="border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
-                  Dashboard
-                </Link>
-                <Link to="/diary" className="border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
-                  Tagebuch
-                </Link>
-              </>
-            )}
-          </div>
-          <div className="pt-4 pb-4 border-t border-gray-200">
-            {user ? (
-              <div className="flex items-center px-4">
-                <div className="flex-shrink-0">
-                  <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                    <User className="h-6 w-6 text-gray-500" />
-                  </div>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="sm:hidden bg-dark-900 border-b border-white/10 overflow-hidden"
+          >
+            <div className="px-4 pt-2 pb-4 space-y-1">
+              <Link
+                to="/"
+                className="block px-3 py-2 rounded-md text-base font-medium text-white bg-white/5"
+                onClick={() => setIsOpen(false)}
+              >
+                Home
+              </Link>
+              {user && (
+                <>
+                  <Link
+                    to="/dashboard"
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-white/5"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    to="/diary"
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-white/5"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Tagebuch
+                  </Link>
+                </>
+              )}
+              {!user && (
+                <div className="pt-4 flex flex-col gap-2">
+                  <Link
+                    to="/login"
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-white/5"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="block px-3 py-2 rounded-md text-base font-medium text-dark-900 bg-primary text-center"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Register
+                  </Link>
                 </div>
-                <div className="ml-3">
-                  <div className="text-base font-medium text-gray-800">{user.name}</div>
-                  <div className="text-sm font-medium text-gray-500">{user.email}</div>
-                </div>
-                <button
-                  onClick={handleLogout}
-                  className="ml-auto flex-shrink-0 bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-                >
-                  <LogOut className="h-6 w-6" />
-                </button>
-              </div>
-            ) : (
-              <div className="mt-3 space-y-1 px-2">
-                <Link to="/login" className="block px-3 py-2 rounded-md text-base font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50">
-                  Login
-                </Link>
-                <Link to="/register" className="block px-3 py-2 rounded-md text-base font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50">
-                  Register
-                </Link>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 };
