@@ -1,0 +1,67 @@
+Hier ist die spezifische **Frontend-Spezifikation** für die Webseite und die Web-Applikation. Diese Anforderungen konzentrieren sich rein auf die Benutzeroberfläche (UI), die Benutzererfahrung (UX) und die clientseitige Logik.
+
+***
+
+# 🎨 Frontend-Spezifikationen: StartUp Lab Webseite & Control-Interface
+
+## 1. Allgemeine Design- & Technische Anforderungen
+* [cite_start]**Responsive Webdesign:** Die gesamte Anwendung muss auf Desktop-PCs, Tablets und Smartphones fehlerfrei und benutzbar dargestellt werden[cite: 129, 143].
+* **Layout & Usability:** Das Layout muss benutzerfreundlich gestaltet sein. [cite_start]Die Bewertung erfolgt explizit auf Basis von Layout-Qualität und einfacher Bedienbarkeit[cite: 133, 134].
+* [cite_start]**Fehlerbehandlung:** Das Frontend muss robust sein und darf keine offensichtlichen Fehleranfälligkeiten zeigen (z.B. bei falschen Eingaben)[cite: 135].
+* [cite_start]**Mockup:** Eine Grundstruktur (Mockup) der Webseite muss in der ersten Phase erstellt werden[cite: 122].
+
+---
+
+## 2. Öffentlicher Bereich (Public Views)
+Dieser Bereich ist für jeden Besucher ohne Login zugänglich.
+
+### 2.1 Landing Page / Projektvorstellung
+* [cite_start]**Projekt-Informationen:** Darstellung des Projektziels ("Fahrender Tisch"), der Funktionalitäten und des Umfangs[cite: 127].
+* [cite_start]**Team-Vorstellung:** Visuelle Darstellung des Projektteams[cite: 128].
+
+### 2.2 Login-Interface
+* **Eingabemaske:** Formular für Benutzername/E-Mail und Passwort.
+* [cite_start]**Funktion:** Ermöglicht den Zugang zum geschützten Bereich (Tagebuch & Admin)[cite: 130, 137].
+
+---
+
+## 3. Geschützter Bereich (Internal Views)
+Zugriff nur nach erfolgreicher Authentifizierung.
+
+### 3.1 Projekttagebuch (Time Tracking & Documentation)
+Das Frontend muss eine vollständige Verwaltungsoberfläche für das Tagebuch bieten.
+* **Übersicht:** Anzeige der bestehenden Tagebucheinträge (Tabelle oder Listenansicht).
+* **CRUD-Operationen (UI):**
+    * [cite_start]**Erstellen:** Formular zum Erfassen von Tätigkeit, Datum und Arbeitsstunden[cite: 136, 154].
+    * [cite_start]**Bearbeiten:** Möglichkeit, bestehende Einträge zu korrigieren[cite: 136].
+    * [cite_start]**Löschen:** Möglichkeit, fehlerhafte Einträge zu entfernen[cite: 136].
+* [cite_start]**Rechte-Handling:** Die UI muss basierend auf den Rechten des eingeloggten Users Elemente anzeigen oder verbergen (z.B. Admin vs. User)[cite: 130].
+
+---
+
+## 4. Steuerungs-Interface (Control Dashboard)
+Dieser Teil dient der Interaktion mit dem Tisch. Er kann Teil der Webseite oder eine separate Web-App sein, muss aber clientseitig implementiert werden.
+
+### 4.1 Telemetrie-Anzeige (Dashboard)
+Visualisierung der Daten, die vom Tisch gesendet werden.
+* [cite_start]**Status-Anzeige:** Aktueller Zustand des Tisches (z.B. "Bereit", "Fährt", "Fehler")[cite: 147].
+* [cite_start]**Akkustand:** Visuelle Repräsentation der Batteriekapazität[cite: 147].
+* [cite_start]**Auftragsbestätigung:** Visuelles Signal im Frontend, wenn ein Gegenstand erfolgreich abgelegt wurde[cite: 42].
+
+### 4.2 Manuelle Steuerung
+Eine Oberfläche zur direkten Kontrolle der Motoren.
+* [cite_start]**Eingabeelemente:** Pfeiltasten (On-Screen Buttons) oder ein virtueller Joystick[cite: 30].
+* [cite_start]**Logik:** Die Eingaben müssen in Echtzeit an die Schnittstelle gesendet werden[cite: 75].
+
+### 4.3 Automatische Steuerung (Routenplanung)
+Eingabemaske für autonome Aufträge.
+* [cite_start]**Start-Ziel-Auswahl:** Dropdowns oder Karten-Interface zur Auswahl von Startpunkt (z.B. Mensa/Apotheke) und Ziel (Zimmernummer)[cite: 30, 31].
+* [cite_start]**Auftrag absenden:** Button zum Starten der Route ("Mensa → Zimmer X → Mensa")[cite: 33].
+* [cite_start]*(Optional)* **Warteschlange:** Anzeige einer Liste von eingereihten Fahraufträgen[cite: 48].
+
+---
+
+## 5. Schnittstellen-Integration (Client-Side Logic)
+[cite_start]Das Frontend ist verantwortlich für die Kommunikation mit dem Webservice[cite: 144].
+* **Datenabruf (Polling/Socket):** Regelmäßiges Abrufen der Telemetriedaten zur Aktualisierung der Anzeige.
+* [cite_start]**Befehlsübermittlung:** Senden von Steuerbefehlen und Tagebucheinträgen an die definierte API[cite: 148, 149].
