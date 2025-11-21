@@ -34,6 +34,7 @@ const Diary = () => {
       await api.delete('/diary', { data: { id } });
       fetchEntries();
     } catch (err) {
+      console.error('Delete error:', err);
       alert('Failed to delete entry');
     }
   };
