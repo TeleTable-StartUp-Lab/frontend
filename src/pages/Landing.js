@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Truck, Battery, Wifi, Zap, Server } from 'lucide-react';
 import { motion } from 'framer-motion';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const Landing = () => {
+  const { user } = useAuth();
   const [backendOnline, setBackendOnline] = useState(true);
 
   useEffect(() => {
@@ -76,7 +78,7 @@ const Landing = () => {
 
             <div className="flex flex-wrap gap-4">
               <Link
-                to="/login"
+                to={user ? "/dashboard" : "/login"}
                 className="group relative px-8 py-4 bg-primary text-dark-900 font-bold rounded-xl overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(0,240,255,0.4)]"
               >
                 <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
@@ -231,7 +233,7 @@ const Landing = () => {
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
-          {[1, 2, 3].map((member) => (
+          {[1, 2, 3, 4, 5, 6].map((member) => (
             <div key={member} className="group relative">
               <div className="absolute inset-0 bg-gradient-to-b from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl" />
               <div className="relative p-6 rounded-2xl bg-dark-800 border border-white/5 space-y-4">

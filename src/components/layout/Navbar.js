@@ -74,7 +74,6 @@ const Navbar = () => {
             </Link>
 
             <div className="hidden sm:ml-10 sm:flex sm:space-x-4">
-              <NavLink to="/">Home</NavLink>
               {user && (
                 <>
                   <NavLink to="/dashboard" icon={Activity}>Dashboard</NavLink>
@@ -133,13 +132,6 @@ const Navbar = () => {
             className="sm:hidden bg-dark-900 border-b border-white/10 overflow-hidden"
           >
             <div className="px-4 pt-2 pb-4 space-y-1">
-              <Link
-                to="/"
-                className="block px-3 py-2 rounded-md text-base font-medium text-white bg-white/5"
-                onClick={() => setIsOpen(false)}
-              >
-                Home
-              </Link>
               {user && (
                 <>
                   <Link
