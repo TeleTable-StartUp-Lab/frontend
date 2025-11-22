@@ -57,14 +57,15 @@ const Diary = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Project Diary</h1>
+      <div className="glass-panel rounded-xl p-6 border border-white/10 flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-white">Project Diary</h1>
         <button
+          type="button"
           onClick={() => {
             setEditingEntry(null);
             setShowForm(true);
           }}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-gray-800 bg-primary hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-bold rounded-xl shadow-sm text-dark-900 bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary focus:ring-offset-dark-900 transition-all hover:shadow-[0_0_15px_rgba(0,240,255,0.3)]"
         >
           <Plus className="h-5 w-5 mr-2" />
           New Entry
@@ -72,13 +73,13 @@ const Diary = () => {
       </div>
 
       {error && (
-        <div className="bg-red-50 border-l-4 border-red-400 p-4">
-          <p className="text-red-700">{error}</p>
+        <div className="glass-error rounded-lg p-4">
+          <p className="text-danger font-medium">{error}</p>
         </div>
       )}
 
       {loading ? (
-        <div className="flex justify-center py-12">
+        <div className="glass-panel rounded-xl border border-white/10 flex justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       ) : (
