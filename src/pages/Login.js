@@ -24,9 +24,7 @@ const Login = () => {
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[100px] -z-10" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary/20 rounded-full blur-[100px] -z-10" />
+      {/* Background Elements Removed */}
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}

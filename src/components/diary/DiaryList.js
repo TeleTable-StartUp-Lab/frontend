@@ -25,12 +25,12 @@ const DiaryList = ({ entries, onDelete, onEdit }) => {
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm, remarkBreaks]}
                       components={{
-                        h1: ({ node, ...props }) => <h1 className="text-xl font-bold text-white mt-4 mb-2" {...props} />,
-                        h2: ({ node, ...props }) => <h2 className="text-lg font-bold text-white mt-3 mb-2" {...props} />,
-                        h3: ({ node, ...props }) => <h3 className="text-md font-bold text-gray-200 mt-2 mb-1" {...props} />,
-                        ul: ({ node, ...props }) => <ul className="list-disc list-inside my-2" {...props} />,
-                        ol: ({ node, ...props }) => <ol className="list-decimal list-inside my-2" {...props} />,
-                        a: ({ node, ...props }) => <a className="text-primary hover:underline" {...props} />,
+                        h1: ({ node, children, ...props }) => <h1 className="text-xl font-bold text-white mt-4 mb-2" {...props}>{children}</h1>,
+                        h2: ({ node, children, ...props }) => <h2 className="text-lg font-bold text-white mt-3 mb-2" {...props}>{children}</h2>,
+                        h3: ({ node, children, ...props }) => <h3 className="text-md font-bold text-gray-200 mt-2 mb-1" {...props}>{children}</h3>,
+                        ul: ({ node, children, ...props }) => <ul className="list-disc list-inside my-2" {...props}>{children}</ul>,
+                        ol: ({ node, children, ...props }) => <ol className="list-decimal list-inside my-2" {...props}>{children}</ol>,
+                        a: ({ node, children, href, ...props }) => <a href={href} className="text-primary hover:underline" {...props}>{children}</a>,
                       }}
                     >
                       {entry.text}
