@@ -49,6 +49,7 @@ const DiaryList = ({ entries, onDelete, onEdit }) => {
                 </div>
                 <div className="ml-4 flex-shrink-0 flex items-center space-x-2">
                   <button
+                    type="button"
                     onClick={() => onEdit(entry)}
                     className="p-2 rounded-lg text-gray-500 hover:text-primary hover:bg-primary/10 transition-all"
                     title="Edit entry"
@@ -56,6 +57,7 @@ const DiaryList = ({ entries, onDelete, onEdit }) => {
                     <Edit2 className="h-4 w-4" />
                   </button>
                   <button
+                    type="button"
                     onClick={() => onDelete(entry.id)}
                     className="p-2 rounded-lg text-gray-500 hover:text-danger hover:bg-danger/10 transition-all"
                     title="Delete entry"
