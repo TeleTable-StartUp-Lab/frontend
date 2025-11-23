@@ -10,6 +10,8 @@ const Landing = () => {
   const [backendOnline, setBackendOnline] = useState(true);
 
   useEffect(() => {
+    document.title = 'TeleTable - Home';
+
     const checkBackend = async () => {
       try {
         await api.get('/');

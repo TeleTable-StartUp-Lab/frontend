@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Lock, Mail, User, ArrowRight } from 'lucide-react';
@@ -11,6 +11,10 @@ const Register = () => {
   const [error, setError] = useState('');
   const { register, login } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    document.title = 'TeleTable - Register';
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

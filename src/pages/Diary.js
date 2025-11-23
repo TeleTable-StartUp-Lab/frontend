@@ -24,6 +24,7 @@ const Diary = () => {
   };
 
   useEffect(() => {
+    document.title = 'TeleTable - Diary';
     fetchEntries();
   }, []);
 

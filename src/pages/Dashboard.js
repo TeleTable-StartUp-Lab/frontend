@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Telemetry from '../components/dashboard/Telemetry';
 import ManualControl from '../components/dashboard/ManualControl';
 import AutoControl from '../components/dashboard/AutoControl';
 import { motion } from 'framer-motion';
 
 const Dashboard = () => {
+  useEffect(() => {
+    document.title = 'TeleTable - Dashboard';
+  }, []);
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
