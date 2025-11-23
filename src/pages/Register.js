@@ -9,15 +9,19 @@ const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { register } = useAuth();
+  const { register, login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     try {
+      // First register the user
       await register(name, email, password);
-      navigate('/login');
+      // Then automatically log them in
+      await login(email, password);
+      // Finally redirect to dashboard
+      navigate('/dashboard');
     } catch (err) {
       setError('Registration failed. Please try again.');
     }
