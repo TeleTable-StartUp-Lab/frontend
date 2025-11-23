@@ -243,8 +243,18 @@ const Landing = () => {
                   <UserIcon className="w-20 h-20 text-gray-600" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white">Team Member {member}</h3>
-                  <p className="text-primary">Full Stack Engineer</p>
+                  <h3 className="text-xl font-bold text-white">
+                    {member === 1 ? 'Lukas Weger' :
+                      member === 2 ? 'Theo Jona Stolzlechner' :
+                        member === 3 ? 'Lukas Fauster' :
+                          `Team Member ${member}`}
+                  </h3>
+                  <p className="text-primary">
+                    {member === 1 ? 'Backend & Infrastructure' :
+                      member === 2 ? 'ESP32 Programmer' :
+                        member === 3 ? 'Project Lead & 3D Development' :
+                          'Full Stack Engineer'}
+                  </p>
                 </div>
               </div>
             </div>

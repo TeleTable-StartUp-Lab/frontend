@@ -8,6 +8,7 @@ import Login from '../../pages/Login';
 import Register from '../../pages/Register';
 import Dashboard from '../../pages/Dashboard';
 import Diary from '../../pages/Diary';
+import About from '../../pages/About';
 
 const AnimatedRoutes = () => {
     const location = useLocation();
@@ -36,6 +37,14 @@ const AnimatedRoutes = () => {
                     element={
                         <PageTransition>
                             <Register />
+                        </PageTransition>
+                    }
+                />
+                <Route
+                    path="/about"
+                    element={
+                        <PageTransition>
+                            <About />
                         </PageTransition>
                     }
                 />

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Menu, X, LogOut, User, Book, Activity, Cpu } from 'lucide-react';
+import { Menu, X, LogOut, User, Book, Activity, Cpu, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
 
@@ -37,7 +37,7 @@ const Navbar = () => {
             >
                 {isActive && (
                     <motion.div
-                        layoutId="navbar-indicator"
+                        layoutId={`navbar-indicator-${user ? 'auth' : 'public'}`}
                         className="absolute inset-0 bg-primary/10 rounded-lg border border-primary/20"
                         initial={false}
                         transition={{ type: "spring", stiffness: 500, damping: 30 }}
@@ -74,10 +74,11 @@ const Navbar = () => {
                         </Link>
 
                         <div className="hidden sm:ml-10 sm:flex sm:space-x-4">
+                            <NavLink to="/about" icon={Info}>About</NavLink>
                             {user && (
                                 <>
                                     <NavLink to="/dashboard" icon={Activity}>Dashboard</NavLink>
-                                    <NavLink to="/diary" icon={Book}>Tagebuch</NavLink>
+                                    <NavLink to="/diary" icon={Book}>Diary</NavLink>
                                 </>
                             )}
                         </div>
@@ -132,6 +133,13 @@ const Navbar = () => {
                         className="sm:hidden bg-dark-900 border-b border-white/10 overflow-hidden"
                     >
                         <div className="px-4 pt-2 pb-4 space-y-1">
+                            <Link
+                                to="/about"
+                                className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-white/5"
+                                onClick={() => setIsOpen(false)}
+                            >
+                                About
+                            </Link>
                             {user && (
                                 <>
                                     <Link
@@ -146,7 +154,7 @@ const Navbar = () => {
                                         className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-white/5"
                                         onClick={() => setIsOpen(false)}
                                     >
-                                        Tagebuch
+                                        Diary
                                     </Link>
                                 </>
                             )}
