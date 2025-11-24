@@ -2,12 +2,14 @@ import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import ProtectedRoute from './ProtectedRoute';
+import AdminRoute from './AdminRoute';
 import PageTransition from './PageTransition';
 import Landing from '../../pages/Landing';
 import Login from '../../pages/Login';
 import Register from '../../pages/Register';
 import Dashboard from '../../pages/Dashboard';
 import Diary from '../../pages/Diary';
+import AdminPanel from '../../pages/AdminPanel';
 import About from '../../pages/About';
 
 const AnimatedRoutes = () => {
@@ -67,6 +69,17 @@ const AnimatedRoutes = () => {
                                 <Diary />
                             </PageTransition>
                         </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/admin"
+                    element={
+                        <AdminRoute>
+                            <PageTransition>
+                                <AdminPanel />
+                            </PageTransition>
+                        </AdminRoute>
                     }
                 />
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Menu, X, LogOut, User, Book, Activity, Cpu, Info } from 'lucide-react';
+import { Menu, X, LogOut, User, Book, Activity, Cpu, Info, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
 
@@ -79,6 +79,9 @@ const Navbar = () => {
                                 <>
                                     <NavLink to="/dashboard" icon={Activity}>Dashboard</NavLink>
                                     <NavLink to="/diary" icon={Book}>Diary</NavLink>
+                                    {user.role === 'admin' && (
+                                        <NavLink to="/admin" icon={Shield}>Admin</NavLink>
+                                    )}
                                 </>
                             )}
                         </div>
@@ -156,6 +159,15 @@ const Navbar = () => {
                                     >
                                         Diary
                                     </Link>
+                                    {user.role === 'admin' && (
+                                        <Link
+                                            to="/admin"
+                                            className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-white/5"
+                                            onClick={() => setIsOpen(false)}
+                                        >
+                                            Admin
+                                        </Link>
+                                    )}
                                 </>
                             )}
                             {!user && (
