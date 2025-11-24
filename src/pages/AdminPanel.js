@@ -73,7 +73,7 @@ const AdminPanel = () => {
     const handleDeleteUser = async (userId) => {
         try {
             // Note: DELETE /user might not be supported by backend yet
-            await api.delete(`/user?id=${userId}`);
+            await api.delete('/user', { data: { id: userId } });
             fetchUsers();
             setShowDeleteConfirm(null);
         } catch (err) {
