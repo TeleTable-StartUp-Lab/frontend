@@ -21,15 +21,16 @@ const DiaryForm = ({ onSuccess, onCancel, initialData = null }) => {
     setError('');
 
     try {
-      // If editing, delete the old entry first (Workaround for no update endpoint)
-      if (initialData) {
-        await api.delete('/diary', { data: { id: initialData.id } });
-      }
-
-      await api.post('/diary', {
+      const payload = {
         text,
         working_minutes: parseInt(workingMinutes, 10)
-      });
+      };
+
+      if (initialData) {
+        payload.id = initialData.id;
+      }
+
+      await api.post('/diary', payload);
       onSuccess();
     } catch (err) {
       console.error(err);
