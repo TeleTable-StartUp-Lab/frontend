@@ -119,17 +119,17 @@ const ManualControl = () => {
   return (
     <div className="glass-panel rounded-xl p-6 border border-white/10 h-full flex flex-col">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-medium text-gray-400 flex items-center gap-2">
-          <Gamepad2 className="w-5 h-5 text-secondary" />
-          Manual Override
-        </h3>
-        <div className="flex items-center gap-2">
-          <div className={`px-3 py-1 rounded border text-xs font-mono ${wsBadge}`}>
+        <div className="flex items-center gap-3">
+          <div className={`px-3 py-1 rounded border text-xs font-mono ${wsBadge} min-w-[130px] text-left`}>
             WS: {wsStatus.toUpperCase()}
           </div>
-          <div className="px-3 py-1 rounded bg-dark-800 border border-white/10 text-xs font-mono text-primary">
-            {activeDirection}
-          </div>
+          <h3 className="text-lg font-medium text-gray-400 flex items-center gap-2">
+            <Gamepad2 className="w-5 h-5 text-secondary" />
+            Manual Override
+          </h3>
+        </div>
+        <div className="px-3 py-1 rounded bg-dark-800 border border-white/10 text-xs font-mono text-primary">
+          {activeDirection}
         </div>
       </div>
 
@@ -137,7 +137,8 @@ const ManualControl = () => {
         <button
           type="button"
           onClick={handleConnect}
-          className="inline-flex items-center justify-center gap-2 px-3 py-2 bg-dark-800 border border-white/10 rounded-lg text-xs text-white hover:bg-dark-700 transition-colors"
+          disabled={wsStatus === 'connected' || wsStatus === 'connecting'}
+          className="inline-flex items-center justify-center gap-2 px-3 py-2 bg-dark-800 border border-white/10 rounded-lg text-xs text-white hover:bg-dark-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Link2 className="h-4 w-4 text-success" />
           Connect WS
