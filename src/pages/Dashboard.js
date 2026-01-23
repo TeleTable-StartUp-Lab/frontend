@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import Telemetry from '../components/dashboard/Telemetry';
 import ManualControl from '../components/dashboard/ManualControl';
 import AutoControl from '../components/dashboard/AutoControl';
+import { RobotControlProvider } from '../context/RobotControlContext';
 import { motion } from 'framer-motion';
 
 const Dashboard = () => {
@@ -24,37 +25,39 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                {/* Left Column - Status & Auto Control */}
-                <div className="lg:col-span-7 space-y-6">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5 }}
-                    >
-                        <Telemetry />
-                    </motion.div>
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, delay: 0.1 }}
-                    >
-                        <AutoControl />
-                    </motion.div>
-                </div>
+            <RobotControlProvider autoConnect>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    {/* Left Column - Status & Auto Control */}
+                    <div className="lg:col-span-7 space-y-6">
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5 }}
+                        >
+                            <Telemetry />
+                        </motion.div>
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.1 }}
+                        >
+                            <AutoControl />
+                        </motion.div>
+                    </div>
 
-                {/* Right Column - Manual Control */}
-                <div className="lg:col-span-5">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, delay: 0.2 }}
-                        className="h-full"
-                    >
-                        <ManualControl />
-                    </motion.div>
+                    {/* Right Column - Manual Control */}
+                    <div className="lg:col-span-5">
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.2 }}
+                            className="h-full"
+                        >
+                            <ManualControl />
+                        </motion.div>
+                    </div>
                 </div>
-            </div>
+            </RobotControlProvider>
         </div>
     );
 };

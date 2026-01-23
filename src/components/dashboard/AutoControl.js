@@ -1,30 +1,76 @@
-import React, { useState } from 'react';
-import { MapPin, Send, CheckCircle, Navigation } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { MapPin, Send, CheckCircle, Navigation, RefreshCcw, XCircle } from 'lucide-react';
+import { useRobotControl } from '../../context/RobotControlContext';
 
 const AutoControl = () => {
+  const { getNodes, selectRoute, sendCommand } = useRobotControl();
   const [start, setStart] = useState('');
   const [destination, setDestination] = useState('');
   const [status, setStatus] = useState('');
+  const [nodes, setNodes] = useState([]);
+  const [error, setError] = useState('');
+  const [loadingNodes, setLoadingNodes] = useState(false);
 
-  const locations = [
-    "Mensa",
-    "Apotheke",
-    "Zimmer 101",
-    "Zimmer 102",
-    "Empfang"
-  ];
+  const fetchNodes = useCallback(async () => {
+    setLoadingNodes(true);
+    setError('');
+    try {
+      const data = await getNodes();
+      setNodes(data.nodes || []);
+    } catch (e) {
+      setError('Failed to fetch nodes');
+    } finally {
+      setLoadingNodes(false);
+    }
+  }, [getNodes]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  useEffect(() => {
+    fetchNodes();
+  }, [fetchNodes]);
+
+  const locations = useMemo(() => nodes, [nodes]);
+
+  const handleSelectRoute = async () => {
     if (!start || !destination) return;
-
     setStatus('sending');
-    // Mock API call
-    setTimeout(() => {
+    setError('');
+    try {
+      const res = await selectRoute(start, destination);
+      if (res.status === 'error') {
+        setError(res.message || 'Route selection failed');
+        setStatus('');
+      } else {
+        setStatus('success');
+        setTimeout(() => setStatus(''), 3000);
+      }
+    } catch (e) {
+      setError('Route selection failed');
+      setStatus('');
+    }
+  };
+
+  const handleNavigateWs = () => {
+    if (!start || !destination) return;
+    const ok = sendCommand({
+      command: 'NAVIGATE',
+      start,
+      destination,
+    });
+    if (!ok) {
+      setError('WebSocket not connected');
+    } else {
       setStatus('success');
       setTimeout(() => setStatus(''), 3000);
-    }, 1000);
+    }
   };
+
+  const handleCancel = () => {
+    const ok = sendCommand({ command: 'CANCEL' });
+    if (!ok) {
+      setError('WebSocket not connected');
+    }
+  };
+
 
   return (
     <div className="glass-panel rounded-xl p-6 border border-white/10">
@@ -33,7 +79,7 @@ const AutoControl = () => {
         Autonomous Navigation
       </h3>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider">Start Location</label>
@@ -70,18 +116,57 @@ const AutoControl = () => {
           </div>
         </div>
 
-        <button
-          type="submit"
-          disabled={!start || !destination || status === 'sending'}
-          className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-dark-900 bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary focus:ring-offset-dark-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-[0_0_15px_rgba(0,240,255,0.3)]"
-        >
-          {status === 'sending' ? 'Initiating Sequence...' : (
-            <>
-              <Send className="h-4 w-4 mr-2" />
-              Execute Route
-            </>
-          )}
-        </button>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={fetchNodes}
+            disabled={loadingNodes}
+            className="w-full flex justify-center items-center py-3 px-4 border border-white/10 rounded-lg shadow-sm text-xs font-bold text-white bg-dark-800 hover:bg-dark-700 disabled:opacity-50 transition-all"
+          >
+            <RefreshCcw className={`h-4 w-4 mr-2 ${loadingNodes ? 'animate-spin' : ''}`} />
+            Refresh Nodes
+          </button>
+          <button
+            type="button"
+            onClick={handleNavigateWs}
+            disabled={!start || !destination}
+            className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-xs font-bold text-dark-900 bg-primary hover:bg-primary-hover disabled:opacity-50 transition-all"
+          >
+            <Send className="h-4 w-4 mr-2" />
+            Navigate (WS)
+          </button>
+          <button
+            type="button"
+            onClick={handleSelectRoute}
+            disabled={!start || !destination || status === 'sending'}
+            className="w-full flex justify-center items-center py-3 px-4 border border-white/10 rounded-lg shadow-sm text-xs font-bold text-white bg-dark-800 hover:bg-dark-700 disabled:opacity-50 transition-all"
+          >
+            {status === 'sending' ? 'Selecting...' : 'Select Route (HTTP)'}
+          </button>
+          <button
+            type="button"
+            onClick={handleCancel}
+            className="w-full flex justify-center items-center py-3 px-4 border border-red-500/30 rounded-lg shadow-sm text-xs font-bold text-red-200 bg-red-500/10 hover:bg-red-500/20 transition-all"
+          >
+            <XCircle className="h-4 w-4 mr-2" />
+            Cancel (WS)
+          </button>
+        </div>
+
+        {error && (
+          <div className="rounded-lg bg-danger/10 border border-danger/20 p-4 animate-fade-in">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <XCircle className="h-5 w-5 text-danger" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-danger">
+                  {error}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {status === 'success' && (
           <div className="rounded-lg bg-success/10 border border-success/20 p-4 animate-fade-in">
@@ -91,7 +176,7 @@ const AutoControl = () => {
               </div>
               <div className="ml-3">
                 <p className="text-sm font-medium text-success">
-                  Command acknowledged. Unit dispatching to target.
+                  Command acknowledged.
                 </p>
               </div>
             </div>
