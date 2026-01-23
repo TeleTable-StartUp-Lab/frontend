@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Truck, User, LogOut, Settings, BookOpen, LayoutDashboard, Info, Shield } from 'lucide-react';
+import { Menu, X, Truck, User, LogOut, BookOpen, LayoutDashboard, Info, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 
@@ -39,7 +39,9 @@ const Navbar = () => {
             { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
             { name: 'Diary', path: '/diary', icon: BookOpen },
             ...(user.role === 'admin' ? [{ name: 'Admin', path: '/admin', icon: Shield }] : [])
-        ] : [])
+        ] : [
+            { name: 'Public Diary', path: '/diary/public', icon: BookOpen }
+        ])
     ];
 
     const isActivePath = (path) => {

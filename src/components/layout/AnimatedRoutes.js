@@ -9,6 +9,7 @@ import Login from '../../pages/Login';
 import Register from '../../pages/Register';
 import Dashboard from '../../pages/Dashboard';
 import Diary from '../../pages/Diary';
+import PublicDiary from '../../pages/PublicDiary';
 import AdminPanel from '../../pages/AdminPanel';
 import About from '../../pages/About';
 
@@ -69,6 +70,14 @@ const AnimatedRoutes = () => {
                                 <Diary />
                             </PageTransition>
                         </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/diary/public"
+                    element={
+                        <PageTransition>
+                            <PublicDiary />
+                        </PageTransition>
                     }
                 />
 

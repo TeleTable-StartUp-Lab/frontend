@@ -4,7 +4,8 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
 
-const DiaryList = ({ entries, onDelete, onEdit }) => {
+const DiaryList = ({ entries, onDelete, onEdit, readOnly = false }) => {
+  const isUuid = (value) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value || '');
   if (!entries.length) {
     return (
       <div className="text-center py-12 glass-panel rounded-xl border border-white/10">
@@ -36,7 +37,15 @@ const DiaryList = ({ entries, onDelete, onEdit }) => {
                       {entry.text}
                     </ReactMarkdown>
                   </div>
-                  <div className="flex items-center text-xs text-gray-500 gap-6">
+                  <div className="flex items-center text-xs text-gray-500 gap-6 flex-wrap">
+                    {entry.owner && (
+                      <div className="flex items-center">
+                        <span className="text-gray-400">By</span>
+                        <span className="ml-2 font-mono text-white">
+                          {isUuid(entry.owner) ? 'You' : entry.owner}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex items-center">
                       <Clock className="flex-shrink-0 mr-1.5 h-3.5 w-3.5 text-primary" />
                       <p className="font-mono">{entry.working_minutes} min</p>
@@ -47,24 +56,26 @@ const DiaryList = ({ entries, onDelete, onEdit }) => {
                     </div>
                   </div>
                 </div>
-                <div className="ml-4 flex-shrink-0 flex items-center space-x-2">
-                  <button
-                    type="button"
-                    onClick={() => onEdit(entry)}
-                    className="p-2 rounded-lg text-gray-500 hover:text-primary hover:bg-primary/10 transition-all"
-                    title="Edit entry"
-                  >
-                    <Edit2 className="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onDelete(entry.id)}
-                    className="p-2 rounded-lg text-gray-500 hover:text-danger hover:bg-danger/10 transition-all"
-                    title="Delete entry"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
+                {!readOnly && (
+                  <div className="ml-4 flex-shrink-0 flex items-center space-x-2">
+                    <button
+                      type="button"
+                      onClick={() => onEdit?.(entry)}
+                      className="p-2 rounded-lg text-gray-500 hover:text-primary hover:bg-primary/10 transition-all"
+                      title="Edit entry"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onDelete?.(entry.id)}
+                      className="p-2 rounded-lg text-gray-500 hover:text-danger hover:bg-danger/10 transition-all"
+                      title="Delete entry"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </li>
