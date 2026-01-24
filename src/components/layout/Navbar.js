@@ -35,20 +35,24 @@ const Navbar = () => {
     const navLinks = [
         { name: 'Home', path: '/', icon: Truck },
         { name: 'About', path: '/about', icon: Info },
+        { name: 'Public Diary', path: '/diary/public', icon: BookOpen },
         ...(user ? [
             { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
             { name: 'Diary', path: '/diary', icon: BookOpen },
             ...(user.role === 'admin' ? [{ name: 'Admin', path: '/admin', icon: Shield }] : [])
-        ] : [
-            { name: 'Public Diary', path: '/diary/public', icon: BookOpen }
-        ])
+        ] : [])
     ];
 
     const isActivePath = (path) => {
         if (path === '/') {
             return location.pathname === '/';
         }
-        return location.pathname.startsWith(path);
+
+        if (path === '/diary' || path === '/diary/public') {
+            return location.pathname === path;
+        }
+
+        return location.pathname === path || location.pathname.startsWith(`${path}/`);
     };
 
     return (
