@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import DiaryList from '../components/diary/DiaryList';
+import DiaryBarChart from '../components/diary/DiaryBarChart';
 import DiaryForm from '../components/diary/DiaryForm';
 import { Plus } from 'lucide-react';
 
@@ -72,6 +73,8 @@ const Diary = () => {
           New Entry
         </button>
       </div>
+
+      <DiaryBarChart entries={entries} />
 
       {error && (
         <div className="glass-error rounded-lg p-4">
