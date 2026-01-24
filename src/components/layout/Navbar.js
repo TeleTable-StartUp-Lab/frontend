@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Truck, User, LogOut, BookOpen, LayoutDashboard, Info, Shield } from 'lucide-react';
+import { Menu, X, Truck, User, LogOut, BookOpen, LayoutDashboard, Info, Shield, Sun, Moon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 
 const Navbar = () => {
     const [isScrolled, setIsScrolled] = useState(false);
@@ -11,6 +12,7 @@ const Navbar = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { user, logout } = useAuth();
+    const { theme, toggleTheme } = useTheme();
 
     useEffect(() => {
         const handleScroll = () => {
@@ -132,6 +134,20 @@ const Navbar = () => {
                         </div>
                         {/* Desktop User Menu / Auth Buttons */}
                         <div className="hidden lg:flex items-center gap-3">
+                            <motion.button
+                                onClick={toggleTheme}
+                                className="flex items-center justify-center w-9 h-9 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-all"
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+                                title={theme === 'light' ? 'Dark mode' : 'Light mode'}
+                            >
+                                {theme === 'light' ? (
+                                    <Moon className="w-4 h-4 text-gray-300" />
+                                ) : (
+                                    <Sun className="w-4 h-4 text-gray-300" />
+                                )}
+                            </motion.button>
                             {user ? (
                                 <div className="relative">
                                     <motion.button
@@ -237,6 +253,20 @@ const Navbar = () => {
                                         </Link>
                                     );
                                 })}
+
+                                <button
+                                    onClick={toggleTheme}
+                                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all bg-white/5 border border-white/5 text-gray-300 hover:bg-white/10 hover:text-white"
+                                >
+                                    {theme === 'light' ? (
+                                        <Moon className="w-5 h-5" />
+                                    ) : (
+                                        <Sun className="w-5 h-5" />
+                                    )}
+                                    <span className="font-medium">
+                                        {theme === 'light' ? 'Dark Mode' : 'Light Mode'}
+                                    </span>
+                                </button>
 
                                 {/* Mobile User Section */}
                                 {user ? (
