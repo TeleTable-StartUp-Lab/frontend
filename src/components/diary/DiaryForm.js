@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import api from '../../services/api';
 import { X, FileText } from 'lucide-react';
 
@@ -39,8 +40,8 @@ const DiaryForm = ({ onSuccess, onCancel, initialData = null }) => {
     }
   };
 
-  return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm overflow-y-auto h-full w-full flex items-center justify-center z-50">
+  const modal = (
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm overflow-y-auto h-full w-full flex items-center justify-center z-[60]">
       <div className="relative glass-panel border border-white/10 rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
         <div className="flex justify-between items-center p-6 border-b border-white/10">
           <h3 className="text-xl font-bold text-white flex items-center gap-2">
@@ -75,22 +76,23 @@ const DiaryForm = ({ onSuccess, onCancel, initialData = null }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-2">Duration (minutes)</label>
+            <label className="block text-sm font-medium text-gray-400 mb-2">Working Minutes</label>
             <input
               type="number"
               required
               min="1"
-              className="block w-full border border-white/10 rounded-xl bg-dark-800/50 text-gray-300 placeholder-gray-600 focus:outline-none focus:bg-dark-800 focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm p-3 transition-all"
+              className="block w-full border border-white/10 rounded-xl bg-dark-800/50 text-gray-300 placeholder-gray-600 focus:outline-none focus:bg-dark-800 focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm p-4 transition-all"
               value={workingMinutes}
               onChange={(e) => setWorkingMinutes(e.target.value)}
+              placeholder="e.g. 90"
             />
           </div>
 
-          <div className="flex justify-end space-x-3 pt-2">
+          <div className="flex justify-end gap-3">
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2 border border-white/10 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+              className="px-6 py-2 border border-white/10 text-sm font-medium rounded-xl text-gray-300 hover:text-white hover:bg-white/5 transition-all"
             >
               Cancel
             </button>
@@ -106,6 +108,12 @@ const DiaryForm = ({ onSuccess, onCancel, initialData = null }) => {
       </div>
     </div>
   );
+
+  if (typeof document === 'undefined') {
+    return null;
+  }
+
+  return createPortal(modal, document.body);
 };
 
 export default DiaryForm;

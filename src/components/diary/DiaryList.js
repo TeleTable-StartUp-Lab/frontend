@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Trash2, Clock, Calendar, Edit2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -6,6 +6,19 @@ import remarkBreaks from 'remark-breaks';
 
 const DiaryList = ({ entries, onDelete, onEdit, readOnly = false }) => {
   const isUuid = (value) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value || '');
+  const [expandedEntries, setExpandedEntries] = useState(new Set());
+
+  const toggleEntry = (id) => {
+    setExpandedEntries((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
   if (!entries.length) {
     return (
       <div className="text-center py-12 glass-panel rounded-xl border border-white/10">
@@ -19,10 +32,16 @@ const DiaryList = ({ entries, onDelete, onEdit, readOnly = false }) => {
       <ul className="divide-y divide-white/10">
         {entries.map((entry) => (
           <li key={entry.id}>
-            <div className="px-6 py-6 hover:bg-white/5 transition duration-150 ease-in-out">
+            <div className="px-5 py-4 transition duration-150 ease-in-out">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0 space-y-3">
-                  <div className="prose prose-invert prose-sm max-w-none text-gray-300" style={{ overflowWrap: 'anywhere' }}>
+                  <div
+                    className={`relative prose prose-invert prose-xs max-w-none text-gray-300 ${expandedEntries.has(entry.id)
+                      ? 'max-h-none'
+                      : 'max-h-56 overflow-hidden'
+                      }`}
+                    style={{ overflowWrap: 'anywhere' }}
+                  >
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm, remarkBreaks]}
                       components={{
@@ -37,6 +56,13 @@ const DiaryList = ({ entries, onDelete, onEdit, readOnly = false }) => {
                       {entry.text}
                     </ReactMarkdown>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => toggleEntry(entry.id)}
+                    className="text-xs font-medium text-primary hover:text-primary-hover transition-colors"
+                  >
+                    {expandedEntries.has(entry.id) ? 'Show less' : 'Read more'}
+                  </button>
                   <div className="flex items-center text-xs text-gray-500 gap-6 flex-wrap">
                     {entry.owner && (
                       <div className="flex items-center">
