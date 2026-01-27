@@ -10,6 +10,7 @@ const AdminPanel = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [editingUser, setEditingUser] = useState(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+    const roleOptions = ['Admin', 'Operator', 'Viewer'];
 
     // Form states
     const [editForm, setEditForm] = useState({
@@ -152,9 +153,11 @@ const AdminPanel = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${user.role === 'admin'
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${user.role === 'Admin'
                                                 ? 'bg-primary/10 text-primary border-primary/20'
-                                                : 'bg-gray-700/50 text-gray-300 border-gray-600/50'
+                                                : user.role === 'Operator'
+                                                    ? 'bg-blue-500/10 text-blue-300 border-blue-500/20'
+                                                    : 'bg-gray-700/50 text-gray-300 border-gray-600/50'
                                                 }`}>
                                                 {user.role}
                                             </span>
@@ -234,8 +237,9 @@ const AdminPanel = () => {
                                         onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
                                         className="w-full px-4 py-2 bg-dark-800 border border-white/10 rounded-lg text-white focus:border-primary outline-none"
                                     >
-                                        <option value="user">User</option>
-                                        <option value="admin">Admin</option>
+                                        {roleOptions.map((role) => (
+                                            <option key={role} value={role}>{role}</option>
+                                        ))}
                                     </select>
                                 </div>
                                 <div>

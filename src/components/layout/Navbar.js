@@ -41,7 +41,7 @@ const Navbar = () => {
         ...(user ? [
             { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
             { name: 'Diary', path: '/diary', icon: BookOpen },
-            ...(user.role === 'admin' ? [{ name: 'Admin', path: '/admin', icon: Shield }] : [])
+            ...(user.role === 'Admin' ? [{ name: 'Admin', path: '/admin', icon: Shield }] : [])
         ] : [])
     ];
 

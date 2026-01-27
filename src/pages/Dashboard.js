@@ -25,7 +25,7 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            <RobotControlProvider autoConnect>
+            <RobotControlProvider autoConnect={false}>
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                     {/* Left Column - Status & Auto Control */}
                     <div className="lg:col-span-7 space-y-6">

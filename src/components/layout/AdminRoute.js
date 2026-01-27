@@ -14,8 +14,8 @@ const AdminRoute = ({ children }) => {
         );
     }
 
-    if (!user || user.role !== 'admin') {
-        return <Navigate to="/dashboard" state={{ from: location }} replace />;
+    if (!user || user.role !== 'Admin') {
+        return <Navigate to="/dashboard" state={{ from: location }} />;
     }
 
     return children;

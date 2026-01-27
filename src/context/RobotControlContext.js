@@ -85,6 +85,29 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
     return response.data;
   }, []);
 
+  const releaseLockOnExit = useCallback(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      disconnectWs();
+      return;
+    }
+
+    const url = `${getBaseUrl()}/drive/lock`;
+    try {
+      fetch(url, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        keepalive: true,
+      });
+    } catch (error) {
+      // Ignore errors on page exit
+    }
+
+    disconnectWs();
+  }, [disconnectWs]);
+
   const getNodes = useCallback(async () => {
     const response = await api.get('/nodes');
     return response.data;
@@ -104,8 +127,27 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
     if (autoConnect && localStorage.getItem('token')) {
       connectWs();
     }
-    return () => disconnectWs();
-  }, [autoConnect, connectWs, disconnectWs]);
+    return () => {
+      if (localStorage.getItem('token')) {
+        releaseLock().catch(() => {});
+      }
+      disconnectWs();
+    };
+  }, [autoConnect, connectWs, disconnectWs, releaseLock]);
+
+  useEffect(() => {
+    const handlePageLeave = () => {
+      releaseLockOnExit();
+    };
+
+    window.addEventListener('pagehide', handlePageLeave);
+    window.addEventListener('beforeunload', handlePageLeave);
+
+    return () => {
+      window.removeEventListener('pagehide', handlePageLeave);
+      window.removeEventListener('beforeunload', handlePageLeave);
+    };
+  }, [releaseLockOnExit]);
 
   const value = useMemo(
     () => ({
