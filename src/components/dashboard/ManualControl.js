@@ -2,9 +2,12 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Gamepad2, Link2, Power, MessageSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRobotControl } from '../../context/RobotControlContext';
+import { useAuth } from '../../context/AuthContext';
 
 const ManualControl = () => {
   const { wsStatus, wsError, lastMessage, connectWs, disconnectWs, sendCommand, acquireLock, releaseLock } = useRobotControl();
+  const { user } = useAuth();
+  const canOperate = user?.role === 'Admin' || user?.role === 'Operator';
   const [activeDirection, setActiveDirection] = useState('STOP');
   const [lockStatus, setLockStatus] = useState('');
   const [lockError, setLockError] = useState('');
@@ -115,6 +118,20 @@ const ManualControl = () => {
         return 'bg-gray-700/40 text-gray-300 border-white/10';
     }
   }, [wsStatus]);
+
+  if (!canOperate) {
+    return (
+      <div className="glass-panel rounded-xl p-6 border border-white/10 h-full flex flex-col">
+        <div className="flex items-center gap-3 mb-4">
+          <Gamepad2 className="w-5 h-5 text-secondary" />
+          <h3 className="text-lg font-medium text-gray-400">Manual Override</h3>
+        </div>
+        <p className="text-sm text-gray-500">
+          Read-only access: manual controls are disabled for Viewer accounts.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="glass-panel rounded-xl p-6 border border-white/10 h-full flex flex-col">

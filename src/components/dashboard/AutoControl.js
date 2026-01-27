@@ -1,9 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { MapPin, Send, CheckCircle, Navigation, RefreshCcw, XCircle } from 'lucide-react';
 import { useRobotControl } from '../../context/RobotControlContext';
+import { useAuth } from '../../context/AuthContext';
 
 const AutoControl = () => {
   const { getNodes, selectRoute, sendCommand } = useRobotControl();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'Admin';
+  const canOperate = user?.role === 'Admin' || user?.role === 'Operator';
   const [start, setStart] = useState('');
   const [destination, setDestination] = useState('');
   const [status, setStatus] = useState('');
@@ -26,6 +30,8 @@ const AutoControl = () => {
 
   useEffect(() => {
     fetchNodes();
+    const intervalId = setInterval(fetchNodes, 3000);
+    return () => clearInterval(intervalId);
   }, [fetchNodes]);
 
   const locations = useMemo(() => nodes, [nodes]);
@@ -117,41 +123,42 @@ const AutoControl = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={fetchNodes}
-            disabled={loadingNodes}
-            className="w-full flex justify-center items-center py-3 px-4 border border-white/10 rounded-lg shadow-sm text-xs font-bold text-white bg-dark-800 hover:bg-dark-700 disabled:opacity-50 transition-all"
-          >
-            <RefreshCcw className={`h-4 w-4 mr-2 ${loadingNodes ? 'animate-spin' : ''}`} />
-            Refresh Nodes
-          </button>
-          <button
-            type="button"
-            onClick={handleNavigateWs}
-            disabled={!start || !destination}
-            className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-xs font-bold text-dark-900 bg-primary hover:bg-primary-hover disabled:opacity-50 transition-all"
-          >
-            <Send className="h-4 w-4 mr-2" />
-            Navigate (WS)
-          </button>
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={handleNavigateWs}
+              disabled={!start || !destination}
+              className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-xs font-bold text-dark-900 bg-primary hover:bg-primary-hover disabled:opacity-50 transition-all"
+            >
+              <Send className="h-4 w-4 mr-2" />
+              Navigate (WS)
+            </button>
+          )}
           <button
             type="button"
             onClick={handleSelectRoute}
-            disabled={!start || !destination || status === 'sending'}
+            disabled={!canOperate || !start || !destination || status === 'sending'}
             className="w-full flex justify-center items-center py-3 px-4 border border-white/10 rounded-lg shadow-sm text-xs font-bold text-white bg-dark-800 hover:bg-dark-700 disabled:opacity-50 transition-all"
           >
             {status === 'sending' ? 'Selecting...' : 'Select Route (HTTP)'}
           </button>
-          <button
-            type="button"
-            onClick={handleCancel}
-            className="w-full flex justify-center items-center py-3 px-4 border border-red-500/30 rounded-lg shadow-sm text-xs font-bold text-red-200 bg-red-500/10 hover:bg-red-500/20 transition-all"
-          >
-            <XCircle className="h-4 w-4 mr-2" />
-            Cancel (WS)
-          </button>
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="w-full flex justify-center items-center py-3 px-4 border border-red-500/30 rounded-lg shadow-sm text-xs font-bold text-red-200 bg-red-500/10 hover:bg-red-500/20 transition-all"
+            >
+              <XCircle className="h-4 w-4 mr-2" />
+              Cancel (WS)
+            </button>
+          )}
         </div>
+
+        {!canOperate && (
+          <p className="text-xs text-gray-500">
+            Read-only access: route changes are disabled for Viewer accounts.
+          </p>
+        )}
 
         {error && (
           <div className="rounded-lg bg-danger/10 border border-danger/20 p-4 animate-fade-in">
