@@ -45,9 +45,9 @@ const About = () => {
             description: 'I\'m responsible for leading and coordinating the project, making sure everyone stays aligned, organized, and moving in the same direction. I also contribute to our 3D development and technical drawings, working together with the others to turn ideas into clear, structured models. And whenever someone on the team needs help or runs into a hurdle, I\'m always ready to support them — whether it\'s solving a problem, giving feedback, or just keeping things on track. With a mix of coordination, technical contribution, and team support, I help ensure the project runs smoothly and keeps its momentum.',
         },
         {
-            name: 'Team Member 4',
-            role: 'Hardware Engineer',
-            description: 'Focuses on mechanical design and hardware integration. Works on the physical components and ensures everything works together seamlessly.',
+            name: 'Gabriel Mirandola',
+            role: '3D-Designer',
+            description: 'I’m responsible for the full 3D development of the table, covering mechanical design, hardware integration, and all structural details. I translate requirements into precise models, ensuring every part fits together both functionally and manufacturably. Beyond the physical design, I support the team on the electronics side — selecting components, planning integration points, and making sure the hardware layout aligns with the overall system. I also assist with embedded work when needed, helping bridge the gap between mechanical, electrical, and firmware development so the whole system operates as intended.',
         },
         {
             name: 'Team Member 5',
