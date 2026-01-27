@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import Navbar from './Navbar';
 
 const Layout = ({ children }) => {
@@ -15,9 +16,9 @@ const Layout = ({ children }) => {
               &copy; {new Date().getFullYear()} TeleTable StartUp Lab.
             </p>
             <div className="flex gap-6 text-sm text-gray-500">
-              <span className="hover:text-primary cursor-pointer transition-colors">Privacy</span>
-              <span className="hover:text-primary cursor-pointer transition-colors">Terms</span>
-              <span className="hover:text-primary cursor-pointer transition-colors">Contact</span>
+              <Link to="/privacy" className="hover:text-primary cursor-pointer transition-colors">Privacy</Link>
+              <Link to="/terms" className="hover:text-primary cursor-pointer transition-colors">Terms</Link>
+              <Link to="/contact" className="hover:text-primary cursor-pointer transition-colors">Contact</Link>
             </div>
           </div>
         </div>

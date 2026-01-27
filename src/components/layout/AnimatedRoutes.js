@@ -12,6 +12,9 @@ import Diary from '../../pages/Diary';
 import PublicDiary from '../../pages/PublicDiary';
 import AdminPanel from '../../pages/AdminPanel';
 import About from '../../pages/About';
+import Privacy from '../../pages/Privacy';
+import Terms from '../../pages/Terms';
+import Contact from '../../pages/Contact';
 
 const AnimatedRoutes = () => {
     const location = useLocation();
@@ -48,6 +51,30 @@ const AnimatedRoutes = () => {
                     element={
                         <PageTransition>
                             <About />
+                        </PageTransition>
+                    }
+                />
+                <Route
+                    path="/privacy"
+                    element={
+                        <PageTransition>
+                            <Privacy />
+                        </PageTransition>
+                    }
+                />
+                <Route
+                    path="/terms"
+                    element={
+                        <PageTransition>
+                            <Terms />
+                        </PageTransition>
+                    }
+                />
+                <Route
+                    path="/contact"
+                    element={
+                        <PageTransition>
+                            <Contact />
                         </PageTransition>
                     }
                 />
