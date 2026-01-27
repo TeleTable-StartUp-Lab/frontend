@@ -10,6 +10,7 @@ import Register from '../../pages/Register';
 import Dashboard from '../../pages/Dashboard';
 import Diary from '../../pages/Diary';
 import PublicDiary from '../../pages/PublicDiary';
+import QueueControl from '../../pages/QueueControl';
 import AdminPanel from '../../pages/AdminPanel';
 import About from '../../pages/About';
 import Privacy from '../../pages/Privacy';
@@ -108,6 +109,16 @@ const AnimatedRoutes = () => {
                     }
                 />
 
+                <Route
+                    path="/queue"
+                    element={
+                        <AdminRoute>
+                            <PageTransition>
+                                <QueueControl />
+                            </PageTransition>
+                        </AdminRoute>
+                    }
+                />
                 <Route
                     path="/admin"
                     element={

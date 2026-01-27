@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Truck, User, LogOut, BookOpen, LayoutDashboard, Info, Shield, Sun, Moon } from 'lucide-react';
+import { Menu, X, Truck, User, LogOut, BookOpen, LayoutDashboard, Info, Shield, Sun, Moon, ListOrdered } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -41,7 +41,10 @@ const Navbar = () => {
         ...(user ? [
             { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
             { name: 'Diary', path: '/diary', icon: BookOpen },
-            ...(user.role === 'Admin' ? [{ name: 'Admin', path: '/admin', icon: Shield }] : [])
+            ...(user.role === 'Admin' ? [
+                { name: 'Queue', path: '/queue', icon: ListOrdered },
+                { name: 'Admin', path: '/admin', icon: Shield }
+            ] : [])
         ] : [])
     ];
 
