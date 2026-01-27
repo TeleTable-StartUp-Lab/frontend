@@ -33,6 +33,7 @@ const About = () => {
             name: 'Lukas Weger',
             role: 'Backend & Infrastructure',
             description: 'I handle the project\'s infrastructure and backend, building the entire Rust-based system from scratch with Axum, Tokio, Postgres, Docker, and Redis. I work fast and independently, leaning on strong technical depth to move features from idea to implementation in one focused push. As a full-stack engineer, I\'m the person the team comes to for tough questions, even if I naturally prefer working on my own and keeping momentum high.',
+            image: '/Lukas_Weger.webp',
         },
         {
             name: 'Theo Jona Stolzlechner',
@@ -50,9 +51,10 @@ const About = () => {
             description: 'I’m responsible for the full 3D development of the table, covering mechanical design, hardware integration, and all structural details. I translate requirements into precise models, ensuring every part fits together both functionally and manufacturably. Beyond the physical design, I support the team on the electronics side — selecting components, planning integration points, and making sure the hardware layout aligns with the overall system. I also assist with embedded work when needed, helping bridge the gap between mechanical, electrical, and firmware development so the whole system operates as intended.',
         },
         {
-            name: 'Team Member 5',
+            name: 'Tobias Bucci',
             role: 'Software Engineer',
             description: 'Develops core features and optimizes performance. Always looking for elegant solutions to complex problems.',
+            image: '/Tobias_Bucci.webp',
         },
         {
             name: 'Team Member 6',
@@ -103,9 +105,18 @@ const About = () => {
                         className="glass-panel rounded-xl p-6 border border-white/10 hover:border-primary/20 transition-all group"
                     >
                         <div className="flex flex-col items-center text-center space-y-4">
-                            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-3xl font-bold text-dark-900 group-hover:scale-110 transition-transform">
-                                {member.name.charAt(member.name.length - 1)}
-                            </div>
+                            {member.image ? (
+                                <img
+                                    src={member.image}
+                                    alt={member.name}
+                                    className="w-24 h-24 rounded-full object-cover border border-white/10 group-hover:scale-110 transition-transform"
+                                    loading="lazy"
+                                />
+                            ) : (
+                                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-3xl font-bold text-dark-900 group-hover:scale-110 transition-transform">
+                                    {member.name.charAt(member.name.length - 1)}
+                                </div>
+                            )}
                             <div>
                                 <h3 className="text-xl font-bold text-white mb-1">{member.name}</h3>
                                 <p className="text-sm text-primary mb-3">{member.role}</p>
