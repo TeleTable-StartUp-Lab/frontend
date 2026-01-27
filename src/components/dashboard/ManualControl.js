@@ -8,11 +8,9 @@ const ManualControl = () => {
   const { wsStatus, wsError, lastMessage, connectWs, disconnectWs, sendCommand, acquireLock, releaseLock } = useRobotControl();
   const { user } = useAuth();
   const canOperate = user?.role === 'Admin' || user?.role === 'Operator';
-  const [activeDirection, setActiveDirection] = useState('STOP');
   const [lockStatus, setLockStatus] = useState('');
   const [lockError, setLockError] = useState('');
   const constraintsRef = useRef(null);
-  const lastCommandRef = useRef('stop');
   const lastSendRef = useRef(0);
   const maxLinear = 1.0;
   const maxAngular = 2.0;
@@ -27,25 +25,6 @@ const ManualControl = () => {
       angular_velocity: angular,
     });
   }, [sendCommand]);
-
-  const handleCommand = useCallback((cmd) => {
-    if (lastCommandRef.current !== cmd) {
-      lastCommandRef.current = cmd;
-      setActiveDirection(cmd.toUpperCase());
-    }
-  }, []);
-
-  const getDirectionLabel = useCallback((x, y) => {
-    const angle = Math.atan2(-y, x) * (180 / Math.PI);
-    if (angle >= -22.5 && angle < 22.5) return 'RIGHT';
-    if (angle >= 22.5 && angle < 67.5) return 'FORWARD RIGHT';
-    if (angle >= 67.5 && angle < 112.5) return 'FORWARD';
-    if (angle >= 112.5 && angle < 157.5) return 'FORWARD LEFT';
-    if (angle >= 157.5 || angle < -157.5) return 'LEFT';
-    if (angle >= -157.5 && angle < -112.5) return 'BACKWARD LEFT';
-    if (angle >= -112.5 && angle < -67.5) return 'BACKWARD';
-    return 'BACKWARD RIGHT';
-  }, []);
 
   const handleDrag = (event, info) => {
     const { x, y } = info.offset;
@@ -66,13 +45,10 @@ const ManualControl = () => {
     const linear = Math.max(-1, Math.min(1, -normY)) * maxLinear;
     const angular = Math.max(-1, Math.min(1, -normX)) * maxAngular;
 
-    handleCommand(getDirectionLabel(clampedX, clampedY));
     sendDriveCommand(linear, angular);
   };
 
   const handleDragEnd = () => {
-    handleCommand('stop');
-    setActiveDirection('STOP');
     sendDriveCommand(0, 0);
   };
 
@@ -144,9 +120,6 @@ const ManualControl = () => {
             <Gamepad2 className="w-5 h-5 text-secondary" />
             Manual Override
           </h3>
-        </div>
-        <div className="px-3 py-1 rounded bg-dark-800 border border-white/10 text-xs font-mono text-primary">
-          {activeDirection}
         </div>
       </div>
 
