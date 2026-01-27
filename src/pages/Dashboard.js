@@ -4,11 +4,32 @@ import ManualControl from '../components/dashboard/ManualControl';
 import AutoControl from '../components/dashboard/AutoControl';
 import { RobotControlProvider } from '../context/RobotControlContext';
 import { motion } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
 
 const Dashboard = () => {
+    const { user } = useAuth();
+    const isViewer = user?.role === 'Viewer';
+
     useEffect(() => {
         document.title = 'TeleTable - Dashboard';
     }, []);
+
+    if (isViewer) {
+        return (
+            <RobotControlProvider autoConnect={false}>
+                <div className="w-full">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="w-full"
+                    >
+                        <Telemetry />
+                    </motion.div>
+                </div>
+            </RobotControlProvider>
+        );
+    }
 
     return (
         <div className="space-y-8">

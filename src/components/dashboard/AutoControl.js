@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { MapPin, Send, CheckCircle, Navigation, RefreshCcw, XCircle } from 'lucide-react';
+import { MapPin, Send, CheckCircle, Navigation, XCircle } from 'lucide-react';
 import { useRobotControl } from '../../context/RobotControlContext';
 import { useAuth } from '../../context/AuthContext';
 
@@ -13,10 +13,8 @@ const AutoControl = () => {
   const [status, setStatus] = useState('');
   const [nodes, setNodes] = useState([]);
   const [error, setError] = useState('');
-  const [loadingNodes, setLoadingNodes] = useState(false);
 
   const fetchNodes = useCallback(async () => {
-    setLoadingNodes(true);
     setError('');
     try {
       const data = await getNodes();
@@ -24,7 +22,7 @@ const AutoControl = () => {
     } catch (e) {
       setError('Failed to fetch nodes');
     } finally {
-      setLoadingNodes(false);
+      // no-op
     }
   }, [getNodes]);
 
