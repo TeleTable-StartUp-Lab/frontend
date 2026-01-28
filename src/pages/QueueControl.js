@@ -3,7 +3,7 @@ import api from '../services/api';
 import { Trash2, Zap, RefreshCw, AlertCircle, MapPin, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const QueueControl = () => {
+const QueueControl = ({ embedded = false }) => {
   const [routes, setRoutes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [optimizing, setOptimizing] = useState(false);
@@ -25,13 +25,15 @@ const QueueControl = () => {
   };
 
   useEffect(() => {
-    document.title = 'TeleTable - Queue Control';
+    if (!embedded) {
+      document.title = 'TeleTable - Queue Control';
+    }
     fetchRoutes();
     
     // Auto refresh every 5 seconds to show new routes coming from WS/HTTP
     const interval = setInterval(fetchRoutes, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [embedded]);
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this route?')) return;
@@ -66,29 +68,49 @@ const QueueControl = () => {
 
   return (
     <div className="space-y-6">
-      <div className="glass-panel rounded-xl p-6 border border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Drive Queue Control</h1>
-          <p className="text-gray-400 text-sm mt-1">Manage and optimize robot navigation routes</p>
+      {!embedded ? (
+        <div className="glass-panel rounded-xl p-6 border border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-white">Drive Queue Control</h1>
+            <p className="text-gray-400 text-sm mt-1">Manage and optimize robot navigation routes</p>
+          </div>
+          <div className="flex gap-3">
+              <button
+              onClick={fetchRoutes}
+              className="p-2 rounded-lg bg-dark-800 text-gray-400 hover:text-white hover:bg-dark-700 transition-colors"
+              title="Refresh"
+              >
+              <RefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
+              </button>
+              <button
+              onClick={handleOptimize}
+              disabled={optimizing || routes.length < 2}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-bold rounded-xl shadow-sm text-dark-900 bg-primary hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary focus:ring-offset-dark-900 transition-all hover:shadow-[0_0_15px_rgba(0,240,255,0.3)]"
+              >
+              <Zap className={`h-5 w-5 mr-2 ${optimizing ? 'animate-pulse' : ''}`} />
+              {optimizing ? 'Optimizing...' : 'Optimize Queue'}
+              </button>
+          </div>
         </div>
-        <div className="flex gap-3">
-            <button
+      ) : (
+        <div className="flex justify-end gap-3">
+          <button
             onClick={fetchRoutes}
             className="p-2 rounded-lg bg-dark-800 text-gray-400 hover:text-white hover:bg-dark-700 transition-colors"
             title="Refresh"
-            >
+          >
             <RefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
-            </button>
-            <button
+          </button>
+          <button
             onClick={handleOptimize}
             disabled={optimizing || routes.length < 2}
             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-bold rounded-xl shadow-sm text-dark-900 bg-primary hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary focus:ring-offset-dark-900 transition-all hover:shadow-[0_0_15px_rgba(0,240,255,0.3)]"
-            >
+          >
             <Zap className={`h-5 w-5 mr-2 ${optimizing ? 'animate-pulse' : ''}`} />
             {optimizing ? 'Optimizing...' : 'Optimize Queue'}
-            </button>
+          </button>
         </div>
-      </div>
+      )}
 
       {error && (
         <motion.div 

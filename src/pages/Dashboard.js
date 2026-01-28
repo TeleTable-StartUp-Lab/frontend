@@ -1,14 +1,18 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Telemetry from '../components/dashboard/Telemetry';
 import ManualControl from '../components/dashboard/ManualControl';
 import AutoControl from '../components/dashboard/AutoControl';
 import { RobotControlProvider } from '../context/RobotControlContext';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { ListOrdered, X } from 'lucide-react';
+import QueueControl from './QueueControl';
 
 const Dashboard = () => {
     const { user } = useAuth();
     const isViewer = user?.role === 'Viewer';
+    const isAdmin = user?.role === 'Admin';
+    const [isQueueOpen, setIsQueueOpen] = useState(false);
 
     useEffect(() => {
         document.title = 'TeleTable - Dashboard';
@@ -37,12 +41,24 @@ const Dashboard = () => {
                 <h1 className="text-3xl font-bold text-white tracking-tight">
                     Control <span className="text-primary">Dashboard</span>
                 </h1>
-                <div className="flex items-center gap-2">
-                    <span className="relative flex h-3 w-3">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-success"></span>
-                    </span>
-                    <span className="text-sm font-mono text-success">SYSTEM ONLINE</span>
+                <div className="flex items-center gap-3">
+                    {isAdmin && (
+                        <button
+                            onClick={() => setIsQueueOpen(true)}
+                            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+                            title="Queue Control"
+                        >
+                            <ListOrdered className="w-4 h-4" />
+                            <span className="text-sm font-medium">Queue</span>
+                        </button>
+                    )}
+                    <div className="flex items-center gap-2">
+                        <span className="relative flex h-3 w-3">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-success"></span>
+                        </span>
+                        <span className="text-sm font-mono text-success">SYSTEM ONLINE</span>
+                    </div>
                 </div>
             </div>
 
@@ -79,6 +95,35 @@ const Dashboard = () => {
                     </div>
                 </div>
             </RobotControlProvider>
+
+            {isQueueOpen && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+                    onMouseDown={() => setIsQueueOpen(false)}
+                >
+                    <div
+                        className="w-full max-w-5xl max-h-[85vh] overflow-y-auto glass-panel rounded-2xl border border-white/10 shadow-2xl"
+                        onMouseDown={(event) => event.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+                            <div className="flex items-center gap-2">
+                                <ListOrdered className="w-5 h-5 text-primary" />
+                                <h2 className="text-lg font-bold text-white">Queue Control</h2>
+                            </div>
+                            <button
+                                onClick={() => setIsQueueOpen(false)}
+                                className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                                aria-label="Close queue control"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="p-6">
+                            <QueueControl embedded />
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
