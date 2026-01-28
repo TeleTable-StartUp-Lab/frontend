@@ -4,22 +4,22 @@ import { motion } from 'framer-motion';
 const pageVariants = {
     initial: {
         opacity: 0,
-        x: -20,
+        y: 10,
     },
     animate: {
         opacity: 1,
-        x: 0,
+        y: 0,
         transition: {
-            duration: 0.3,
-            ease: "easeOut"
+            duration: 0.4,
+            ease: [0.4, 0, 0.2, 1], // cubic-bezier für smooth easing
         }
     },
     exit: {
         opacity: 0,
-        x: 20,
+        y: -10,
         transition: {
-            duration: 0.2,
-            ease: "easeIn"
+            duration: 0.3,
+            ease: [0.4, 0, 1, 1], // schnelleres exit
         }
     }
 };

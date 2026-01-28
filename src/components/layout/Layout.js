@@ -16,15 +16,9 @@ const Layout = ({ children }) => {
               &copy; {new Date().getFullYear()} TeleTable StartUp Lab.
             </p>
             <div className="flex gap-6 text-sm text-gray-500">
-<<<<<<< HEAD
               <Link to="/privacy" className="hover:text-primary cursor-pointer transition-colors">Privacy</Link>
               <Link to="/terms" className="hover:text-primary cursor-pointer transition-colors">Terms</Link>
               <Link to="/contact" className="hover:text-primary cursor-pointer transition-colors">Contact</Link>
-=======
-              <Link className="hover:text-primary transition-colors" to="/legal#privacy">Privacy</Link>
-              <Link className="hover:text-primary transition-colors" to="/legal#terms">Terms</Link>
-              <Link className="hover:text-primary transition-colors" to="/legal#contact">Contact</Link>
->>>>>>> 2b46b26 (Add Legal page and update navigation links for privacy, terms, and contact)
             </div>
           </div>
         </div>

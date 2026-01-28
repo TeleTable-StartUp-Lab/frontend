@@ -12,7 +12,8 @@ const About = () => {
         visible: {
             opacity: 1,
             transition: {
-                staggerChildren: 0.1
+                staggerChildren: 0.08,
+                delayChildren: 0.1
             }
         }
     };
@@ -23,7 +24,20 @@ const About = () => {
             opacity: 1,
             y: 0,
             transition: {
-                duration: 0.5
+                duration: 0.5,
+                ease: [0.4, 0, 0.2, 1]
+            }
+        }
+    };
+
+    const heroVariants = {
+        hidden: { opacity: 0, y: 30 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: {
+                duration: 0.6,
+                ease: [0.4, 0, 0.2, 1]
             }
         }
     };
@@ -67,15 +81,20 @@ const About = () => {
         <div className="space-y-16 pb-20">
             {/* Hero Section */}
             <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
+                initial="hidden"
+                animate="visible"
+                variants={heroVariants}
                 className="text-center space-y-6"
             >
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20"
+                >
                     <Users className="w-4 h-4 text-primary" />
                     <span className="text-sm font-medium text-primary">Our Team</span>
-                </div>
+                </motion.div>
 
                 <h1 className="text-5xl sm:text-6xl font-bold tracking-tight leading-tight">
                     Meet the <br />
@@ -94,28 +113,35 @@ const About = () => {
             <motion.div
                 variants={containerVariants}
                 initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
+                animate="visible"
                 className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
             >
                 {teamMembers.map((member, idx) => (
                     <motion.div
                         key={idx}
                         variants={itemVariants}
-                        className="glass-panel rounded-xl p-6 border border-white/10 hover:border-primary/20 transition-all group"
+                        whileHover={{ scale: 1.02 }}
+                        transition={{ type: 'spring', stiffness: 220, damping: 22 }}
+                        className="glass-panel rounded-xl p-6 border border-white/10 hover:border-primary/20 transition-colors duration-300 group"
                     >
                         <div className="flex flex-col items-center text-center space-y-4">
                             {member.image ? (
-                                <img
+                                <motion.img
+                                    whileHover={{ scale: 1.1 }}
+                                    transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
                                     src={member.image}
                                     alt={member.name}
-                                    className="w-24 h-24 rounded-full object-cover border border-white/10 group-hover:scale-110 transition-transform"
+                                    className="w-24 h-24 rounded-full object-cover border border-white/10"
                                     loading="lazy"
                                 />
                             ) : (
-                                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-3xl font-bold text-dark-900 group-hover:scale-110 transition-transform">
+                                <motion.div
+                                    whileHover={{ scale: 1.1, rotate: 5 }}
+                                    transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+                                    className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-3xl font-bold text-dark-900"
+                                >
                                     {member.name.charAt(member.name.length - 1)}
-                                </div>
+                                </motion.div>
                             )}
                             <div>
                                 <h3 className="text-xl font-bold text-white mb-1">{member.name}</h3>

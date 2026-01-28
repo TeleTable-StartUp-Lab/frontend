@@ -13,135 +13,40 @@ import PublicDiary from '../../pages/PublicDiary';
 import QueueControl from '../../pages/QueueControl';
 import AdminPanel from '../../pages/AdminPanel';
 import About from '../../pages/About';
-<<<<<<< HEAD
 import Privacy from '../../pages/Privacy';
 import Terms from '../../pages/Terms';
 import Contact from '../../pages/Contact';
-=======
-import Legal from '../../pages/Legal';
->>>>>>> 2b46b26 (Add Legal page and update navigation links for privacy, terms, and contact)
 
 const AnimatedRoutes = () => {
     const location = useLocation();
 
+    const page = (element) => <PageTransition>{element}</PageTransition>;
+    const protectedPage = (element) => (
+        <ProtectedRoute>{page(element)}</ProtectedRoute>
+    );
+    const adminPage = (element) => (
+        <AdminRoute>{page(element)}</AdminRoute>
+    );
+
     return (
-        <AnimatePresence mode="wait">
-            <Routes location={location} key={location.pathname}>
-                <Route
-                    path="/"
-                    element={
-                        <PageTransition>
-                            <Landing />
-                        </PageTransition>
-                    }
-                />
-                <Route
-                    path="/login"
-                    element={
-                        <PageTransition>
-                            <Login />
-                        </PageTransition>
-                    }
-                />
-                <Route
-                    path="/register"
-                    element={
-                        <PageTransition>
-                            <Register />
-                        </PageTransition>
-                    }
-                />
-                <Route
-                    path="/about"
-                    element={
-                        <PageTransition>
-                            <About />
-                        </PageTransition>
-                    }
-                />
-                <Route
-<<<<<<< HEAD
-                    path="/privacy"
-                    element={
-                        <PageTransition>
-                            <Privacy />
-                        </PageTransition>
-                    }
-                />
-                <Route
-                    path="/terms"
-                    element={
-                        <PageTransition>
-                            <Terms />
-                        </PageTransition>
-                    }
-                />
-                <Route
-                    path="/contact"
-                    element={
-                        <PageTransition>
-                            <Contact />
-=======
-                    path="/legal"
-                    element={
-                        <PageTransition>
-                            <Legal />
->>>>>>> 2b46b26 (Add Legal page and update navigation links for privacy, terms, and contact)
-                        </PageTransition>
-                    }
-                />
+        <AnimatePresence mode="wait" initial={false}>
+            <Routes location={location} key={location.key}>
+                <Route path="/" element={page(<Landing />)} />
+                <Route path="/login" element={page(<Login />)} />
+                <Route path="/register" element={page(<Register />)} />
+                <Route path="/about" element={page(<About />)} />
+                <Route path="/privacy" element={page(<Privacy />)} />
+                <Route path="/terms" element={page(<Terms />)} />
+                <Route path="/contact" element={page(<Contact />)} />
 
-                <Route
-                    path="/dashboard"
-                    element={
-                        <ProtectedRoute>
-                            <PageTransition>
-                                <Dashboard />
-                            </PageTransition>
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/diary"
-                    element={
-                        <ProtectedRoute>
-                            <PageTransition>
-                                <Diary />
-                            </PageTransition>
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/diary/public"
-                    element={
-                        <PageTransition>
-                            <PublicDiary />
-                        </PageTransition>
-                    }
-                />
+                <Route path="/dashboard" element={protectedPage(<Dashboard />)} />
+                <Route path="/diary" element={protectedPage(<Diary />)} />
+                <Route path="/diary/public" element={page(<PublicDiary />)} />
 
-                <Route
-                    path="/queue"
-                    element={
-                        <AdminRoute>
-                            <PageTransition>
-                                <QueueControl />
-                            </PageTransition>
-                        </AdminRoute>
-                    }
-                />
-                <Route
-                    path="/admin"
-                    element={
-                        <AdminRoute>
-                            <PageTransition>
-                                <AdminPanel />
-                            </PageTransition>
-                        </AdminRoute>
-                    }
-                />
+                <Route path="/queue" element={adminPage(<QueueControl />)} />
+                <Route path="/admin" element={adminPage(<AdminPanel />)} />
 
-                <Route path="*" element={<Navigate to="/" />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </AnimatePresence>
     );

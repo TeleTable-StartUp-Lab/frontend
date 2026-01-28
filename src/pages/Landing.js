@@ -54,18 +54,23 @@ const Landing = () => {
         <div className="absolute inset-0 bg-primary/5 blur-[100px] rounded-full pointer-events-none" />
         <div className="relative grid lg:grid-cols-2 gap-12 items-center">
           <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
             className="space-y-8"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.2, ease: [0.4, 0, 0.2, 1] }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm"
+            >
               <span className="relative flex h-3 w-3">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
               </span>
               <span className="text-sm font-medium text-primary">System Online v2.0</span>
-            </div>
+            </motion.div>
 
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-tight">
               The Future of <br />
@@ -96,20 +101,19 @@ const Landing = () => {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
+            initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+            transition={{ duration: 0.6, delay: 0.3, ease: [0.4, 0, 0.2, 1] }}
             className="relative lg:h-[600px] flex items-center justify-center"
           >
             <div className="relative w-full aspect-square max-w-lg">
-              <div className="absolute inset-0 bg-gradient-to-tr from-primary to-secondary rounded-full blur-[100px] opacity-20 animate-pulse" />
+              <div className="absolute inset-0 bg-gradient-to-tr from-primary to-secondary rounded-full blur-[100px] opacity-20" />
               <motion.div
                 animate={{
-                  scale: [1, 1.05, 1],
-                  rotateY: [0, 10, 0, -10, 0]
+                  scale: [1, 1.02, 1],
                 }}
                 transition={{
-                  duration: 8,
+                  duration: 6,
                   repeat: Infinity,
                   ease: "easeInOut"
                 }}
@@ -123,8 +127,12 @@ const Landing = () => {
 
               {/* Floating Stats Cards */}
               <motion.div
-                animate={{ y: [0, -20, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: [0, -15, 0] }}
+                transition={{ 
+                  opacity: { duration: 0.5, delay: 0.6 },
+                  y: { duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.6 }
+                }}
                 className="absolute top-10 right-0 p-4 glass-panel rounded-xl border border-white/10"
               >
                 <div className="flex items-center gap-3">
@@ -139,8 +147,12 @@ const Landing = () => {
               </motion.div>
 
               <motion.div
-                animate={{ y: [0, 20, 0] }}
-                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: [0, 15, 0] }}
+                transition={{ 
+                  opacity: { duration: 0.5, delay: 0.7 },
+                  y: { duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.7 }
+                }}
                 className="absolute bottom-20 left-0 p-4 glass-panel rounded-xl border border-white/10"
               >
                 <div className="flex items-center gap-3">
@@ -155,8 +167,12 @@ const Landing = () => {
               </motion.div>
 
               <motion.div
-                animate={{ y: [0, -15, 0] }}
-                transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: [0, -12, 0] }}
+                transition={{ 
+                  opacity: { duration: 0.5, delay: 0.8 },
+                  y: { duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.8 }
+                }}
                 className="absolute top-1/2 -right-4 p-4 glass-panel rounded-xl border border-white/10"
               >
                 <div className="flex items-center gap-3">
@@ -213,11 +229,16 @@ const Landing = () => {
             <motion.div
               key={idx}
               variants={itemVariants}
-              className="group p-8 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all hover:-translate-y-2"
+              whileHover={{ y: -8, transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] } }}
+              className="group p-8 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors duration-300"
             >
-              <div className={`w-14 h-14 rounded-xl bg-dark-800 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 border border-white/5`}>
+              <motion.div
+                whileHover={{ scale: 1.1 }}
+                transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+                className={`w-14 h-14 rounded-xl bg-dark-800 flex items-center justify-center mb-6 border border-white/5`}
+              >
                 <feature.icon className={`w-8 h-8 ${feature.color}`} />
-              </div>
+              </motion.div>
               <h3 className="text-xl font-bold text-white mb-3">{feature.title}</h3>
               <p className="text-gray-400 leading-relaxed">
                 {feature.desc}
@@ -228,16 +249,30 @@ const Landing = () => {
       </motion.div>
 
       {/* Team Section */}
-      <div className="space-y-12">
-        <div className="text-center space-y-4">
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        className="space-y-12"
+      >
+        <motion.div
+          variants={itemVariants}
+          className="text-center space-y-4"
+        >
           <h2 className="text-primary font-medium tracking-wider uppercase">The Team</h2>
           <p className="text-4xl font-bold text-white">Built by Engineers</p>
-        </div>
+        </motion.div>
 
         <div className="grid md:grid-cols-3 gap-8">
           {[1, 2, 3, 4, 5, 6].map((member) => (
-            <div key={member} className="group relative">
-              <div className="absolute inset-0 bg-gradient-to-b from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl" />
+            <motion.div
+              key={member}
+              variants={itemVariants}
+              whileHover={{ y: -8, transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] } }}
+              className="group relative"
+            >
+              <div className="absolute inset-0 bg-gradient-to-b from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
               <div className="relative p-6 rounded-2xl bg-dark-800 border border-white/5 space-y-4">
                 <div className="h-48 rounded-xl bg-dark-700 flex items-center justify-center overflow-hidden">
                   <UserIcon className="w-20 h-20 text-gray-600" />
@@ -257,10 +292,10 @@ const Landing = () => {
                   </p>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

@@ -22,6 +22,25 @@ body {
   overscroll-behavior-y: none;
 }
 
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Global smooth transitions */
+* {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Prevent layout shift */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 #root {
   min-height: 100vh;
   background-color: #050505;
@@ -55,12 +74,15 @@ code {
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
 }
 
 .glass-input {
   background: rgba(18, 18, 18, 0.5);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-card {
@@ -68,6 +90,7 @@ code {
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
   border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-error {
@@ -75,6 +98,7 @@ code {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border-left: 4px solid rgb(239, 68, 68);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .text-gradient {

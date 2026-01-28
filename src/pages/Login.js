@@ -31,9 +31,9 @@ const Login = () => {
       {/* Background Elements Removed */}
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
         className="max-w-md w-full space-y-8 glass-panel p-8 rounded-2xl shadow-2xl border border-white/10"
       >
         <div>
@@ -50,8 +50,9 @@ const Login = () => {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
               className="bg-danger/10 border-l-4 border-danger p-4 rounded-r-md"
             >
               <div className="flex">
