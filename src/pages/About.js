@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Users } from 'lucide-react';
+import { Users, Github } from 'lucide-react';
 
 const About = () => {
     useEffect(() => {
@@ -59,7 +59,7 @@ const About = () => {
 
                 <p className="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
                     A passionate group of engineers and designers working together to revolutionize
-                    office logistics through innovative automation technology.
+                    Medical logistics through innovative automation technology.
                 </p>
             </div>
 
@@ -91,6 +91,19 @@ const About = () => {
                         </div>
                     </div>
                 ))}
+            </div>
+
+            {/* GitHub Link Section */}
+            <div className="flex justify-center pt-12">
+                <a
+                    href="https://github.com/TeleTable-StartUp-Lab"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex items-center gap-3 px-6 py-4 glass-panel rounded-xl border border-white/10 hover:border-primary/30 transition-all duration-300 hover:scale-105"
+                >
+                    <Github className="w-6 h-6 text-primary group-hover:text-white transition-colors" />
+                    <span className="text-white font-medium">Visit us on GitHub</span>
+                </a>
             </div>
         </div>
     );
