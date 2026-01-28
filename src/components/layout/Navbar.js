@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, Truck, User, LogOut, BookOpen, LayoutDashboard, Info, Shield, Sun, Moon } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -57,10 +56,7 @@ const Navbar = () => {
 
     return (
         <>
-            <motion.nav
-                initial={{ y: -100 }}
-                animate={{ y: 0 }}
-                transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+            <nav
                 className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
                     ? 'bg-dark-900/80 backdrop-blur-xl shadow-lg'
                     : 'bg-transparent'
@@ -75,16 +71,12 @@ const Navbar = () => {
                                 to="/"
                                 className="flex items-center gap-3 group"
                             >
-                                <motion.div
-                                    whileHover={{ scale: 1.05 }}
-                                    transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-                                    className="relative"
-                                >
+                                <div className="relative">
                                     <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full group-hover:bg-primary/40 transition-all duration-300" />
                                     <div className="relative p-1.5 bg-gradient-to-br from-primary to-secondary rounded-lg">
                                         <Truck className="w-5 h-5 text-dark-900" />
                                     </div>
-                                </motion.div>
+                                </div>
                                 <div className="flex flex-col">
                                     <span className="text-lg font-bold text-white tracking-tight">
                                         Tele<span className="text-primary">Table</span>
@@ -104,32 +96,19 @@ const Navbar = () => {
                                             to={link.path}
                                             className="relative px-2 py-1 group"
                                         >
-                                            <motion.div
+                                            <div
                                                 className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 transition-colors duration-200 ${isActive
                                                         ? 'text-primary'
                                                         : 'text-gray-400 hover:text-white'
                                                     }`}
-                                                whileHover={{ scale: 1.03 }}
-                                                whileTap={{ scale: 0.97 }}
-                                                transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
                                             >
                                                 <Icon className="w-4 h-4" />
                                                 <span className="text-sm font-medium">{link.name}</span>
-                                            </motion.div>
+                                            </div>
 
                                             {/* Active indicator */}
                                             {isActive && (
-                                                <motion.div
-                                                    layoutId="navbar-active-pill"
-                                                    className="absolute inset-0 bg-primary/10 rounded-lg border border-primary/20"
-                                                    initial={false}
-                                                    transition={{ 
-                                                        type: "spring", 
-                                                        stiffness: 350, 
-                                                        damping: 30,
-                                                        duration: 0.3
-                                                    }}
-                                                />
+                                                <div className="absolute inset-0 bg-primary/10 rounded-lg border border-primary/20" />
                                             )}
                                         </Link>
                                     );
@@ -138,12 +117,9 @@ const Navbar = () => {
                         </div>
                         {/* Desktop User Menu / Auth Buttons */}
                         <div className="hidden lg:flex items-center gap-3">
-                            <motion.button
+                            <button
                                 onClick={toggleTheme}
                                 className="flex items-center justify-center w-9 h-9 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors duration-200"
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
                                 aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
                                 title={theme === 'light' ? 'Dark mode' : 'Light mode'}
                             >
@@ -152,19 +128,16 @@ const Navbar = () => {
                                 ) : (
                                     <Sun className="w-4 h-4 text-gray-300" />
                                 )}
-                            </motion.button>
+                            </button>
                             {user ? (
                                 <div className="relative">
-                                    <motion.button
+                                    <button
                                         onMouseDown={(event) => {
                                             event.preventDefault();
                                             event.stopPropagation();
                                             setIsUserMenuOpen((open) => !open);
                                         }}
                                         className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors duration-200"
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
-                                        transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
                                     >
                                         <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
                                             <User className="w-3.5 h-3.5 text-dark-900" />
@@ -173,7 +146,7 @@ const Navbar = () => {
                                             <div className="text-xs font-medium text-white">{user.username}</div>
                                             <div className="text-[10px] text-gray-500 capitalize">{user.role}</div>
                                         </div>
-                                    </motion.button>
+                                    </button>
 
                                     {/* User Dropdown Menu */}
                                     {isUserMenuOpen && (
@@ -222,32 +195,22 @@ const Navbar = () => {
                         </div>
 
                         {/* Mobile Menu Button */}
-                        <motion.button
+                        <button
                             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                             className="lg:hidden p-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors duration-200"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
                         >
                             {isMobileMenuOpen ? (
                                 <X className="w-6 h-6 text-white" />
                             ) : (
                                 <Menu className="w-6 h-6 text-white" />
                             )}
-                        </motion.button>
+                        </button>
                     </div>
                 </div >
 
                 {/* Mobile Menu */}
-                < AnimatePresence >
-                    {isMobileMenuOpen && (
-                        <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-                            className="lg:hidden border-t border-white/10 bg-dark-900/95 backdrop-blur-xl"
-                        >
+                {isMobileMenuOpen && (
+                    <div className="lg:hidden border-t border-white/10 bg-dark-900/95 backdrop-blur-xl">
                             <div className="px-4 py-6 space-y-3 max-h-[calc(100vh-5rem)] overflow-y-auto">
                                 {/* Mobile Navigation Links */}
                                 {navLinks.map((link) => {
@@ -329,11 +292,9 @@ const Navbar = () => {
                                     </div>
                                 )}
                             </div>
-                        </motion.div>
-                    )
-                    }
-                </AnimatePresence >
-            </motion.nav >
+                    </div>
+                )}
+            </nav>
 
             {/* Click outside to close user menu */}
             {

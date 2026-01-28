@@ -1,6 +1,5 @@
 import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
 import ProtectedRoute from './ProtectedRoute';
 import AdminRoute from './AdminRoute';
 import PageTransition from './PageTransition';
@@ -29,26 +28,24 @@ const AnimatedRoutes = () => {
     );
 
     return (
-        <AnimatePresence mode="wait" initial={false}>
-            <Routes location={location} key={location.key}>
-                <Route path="/" element={page(<Landing />)} />
-                <Route path="/login" element={page(<Login />)} />
-                <Route path="/register" element={page(<Register />)} />
-                <Route path="/about" element={page(<About />)} />
-                <Route path="/privacy" element={page(<Privacy />)} />
-                <Route path="/terms" element={page(<Terms />)} />
-                <Route path="/contact" element={page(<Contact />)} />
+        <Routes location={location} key={location.key}>
+            <Route path="/" element={page(<Landing />)} />
+            <Route path="/login" element={page(<Login />)} />
+            <Route path="/register" element={page(<Register />)} />
+            <Route path="/about" element={page(<About />)} />
+            <Route path="/privacy" element={page(<Privacy />)} />
+            <Route path="/terms" element={page(<Terms />)} />
+            <Route path="/contact" element={page(<Contact />)} />
 
-                <Route path="/dashboard" element={protectedPage(<Dashboard />)} />
-                <Route path="/diary" element={protectedPage(<Diary />)} />
-                <Route path="/diary/public" element={page(<PublicDiary />)} />
+            <Route path="/dashboard" element={protectedPage(<Dashboard />)} />
+            <Route path="/diary" element={protectedPage(<Diary />)} />
+            <Route path="/diary/public" element={page(<PublicDiary />)} />
 
-                <Route path="/queue" element={adminPage(<QueueControl />)} />
-                <Route path="/admin" element={adminPage(<AdminPanel />)} />
+            <Route path="/queue" element={adminPage(<QueueControl />)} />
+            <Route path="/admin" element={adminPage(<AdminPanel />)} />
 
-                <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-        </AnimatePresence>
+            <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
     );
 };
 

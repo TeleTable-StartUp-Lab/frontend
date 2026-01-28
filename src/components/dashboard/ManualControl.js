@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Gamepad2, Link2, Power, MessageSquare } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { useRobotControl } from '../../context/RobotControlContext';
 import { useAuth } from '../../context/AuthContext';
 
@@ -10,6 +9,8 @@ const ManualControl = () => {
   const canOperate = user?.role === 'Admin' || user?.role === 'Operator';
   const [lockStatus, setLockStatus] = useState('');
   const [lockError, setLockError] = useState('');
+  const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
   const constraintsRef = useRef(null);
   const lastSendRef = useRef(0);
   const maxLinear = 1.0;
@@ -26,8 +27,7 @@ const ManualControl = () => {
     });
   }, [sendCommand]);
 
-  const handleDrag = (event, info) => {
-    const { x, y } = info.offset;
+  const updateFromOffset = useCallback((x, y) => {
     const threshold = 8;
 
     if (Math.abs(x) < threshold && Math.abs(y) < threshold) {
@@ -46,10 +46,39 @@ const ManualControl = () => {
     const angular = Math.max(-1, Math.min(1, -normX)) * maxAngular;
 
     sendDriveCommand(linear, angular);
-  };
+  }, [maxAngular, maxLinear, sendDriveCommand]);
 
   const handleDragEnd = () => {
     sendDriveCommand(0, 0);
+  };
+
+  const handlePointerDown = (event) => {
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setIsDragging(true);
+  };
+
+  const handlePointerMove = (event) => {
+    if (!isDragging) return;
+    const bounds = constraintsRef.current?.getBoundingClientRect();
+    if (!bounds) return;
+    const centerX = bounds.left + bounds.width / 2;
+    const centerY = bounds.top + bounds.height / 2;
+    const rawX = event.clientX - centerX;
+    const rawY = event.clientY - centerY;
+
+    const maxRadius = (bounds.width / 2) - 20;
+    const clampedX = Math.max(-maxRadius, Math.min(maxRadius, rawX));
+    const clampedY = Math.max(-maxRadius, Math.min(maxRadius, rawY));
+
+    setDragPos({ x: clampedX, y: clampedY });
+    updateFromOffset(clampedX, clampedY);
+  };
+
+  const handlePointerUp = (event) => {
+    event.currentTarget.releasePointerCapture(event.pointerId);
+    setIsDragging(false);
+    setDragPos({ x: 0, y: 0 });
+    handleDragEnd();
   };
 
   const handleConnect = async () => {
@@ -178,18 +207,22 @@ const ManualControl = () => {
           </div>
 
           {/* Joystick Handle */}
-          <motion.div
-            drag
-            dragConstraints={constraintsRef}
-            dragElastic={0.2}
-            dragSnapToOrigin
-            onDrag={handleDrag}
-            onDragEnd={handleDragEnd}
-            whileTap={{ scale: 0.9 }}
+          <div
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerLeave={() => {
+              if (isDragging) {
+                setIsDragging(false);
+                setDragPos({ x: 0, y: 0 });
+                handleDragEnd();
+              }
+            }}
+            style={{ transform: `translate(${dragPos.x}px, ${dragPos.y}px)` }}
             className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-secondary shadow-[0_0_30px_rgba(0,240,255,0.3)] cursor-grab active:cursor-grabbing flex items-center justify-center relative z-10"
           >
             <div className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-md border border-white/20"></div>
-          </motion.div>
+          </div>
         </div>
       </div>
 

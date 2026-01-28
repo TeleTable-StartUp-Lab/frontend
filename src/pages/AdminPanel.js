@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Trash2, Edit2, X, Search } from 'lucide-react';
 import api from '../services/api';
 
@@ -192,15 +191,9 @@ const AdminPanel = () => {
             </div>
 
             {/* Edit Modal */}
-            <AnimatePresence>
-                {editingUser && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-dark-900 border border-white/10 rounded-2xl w-full max-w-md p-6 shadow-2xl"
-                        >
+            {editingUser && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-dark-900 border border-white/10 rounded-2xl w-full max-w-md p-6 shadow-2xl">
                             <div className="flex justify-between items-center mb-6">
                                 <h2 className="text-xl font-bold text-white">Edit User</h2>
                                 <button
@@ -269,21 +262,14 @@ const AdminPanel = () => {
                                     </button>
                                 </div>
                             </form>
-                        </motion.div>
+                        </div>
                     </div>
                 )}
-            </AnimatePresence>
 
             {/* Delete Confirmation Modal */}
-            <AnimatePresence>
-                {showDeleteConfirm && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-dark-900 border border-red-500/20 rounded-2xl w-full max-w-sm p-6 shadow-2xl"
-                        >
+            {showDeleteConfirm && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-dark-900 border border-red-500/20 rounded-2xl w-full max-w-sm p-6 shadow-2xl">
                             <div className="flex flex-col items-center text-center">
                                 <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mb-4">
                                     <Trash2 className="w-6 h-6 text-red-500" />
@@ -307,10 +293,9 @@ const AdminPanel = () => {
                                     </button>
                                 </div>
                             </div>
-                        </motion.div>
+                        </div>
                     </div>
                 )}
-            </AnimatePresence>
         </div>
     );
 };

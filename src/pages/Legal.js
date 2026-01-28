@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { FileText, Shield, Mail } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
@@ -20,19 +19,9 @@ const Legal = () => {
         }
     }, [location.hash]);
 
-    const sectionVariants = {
-        hidden: { opacity: 0, y: 16 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
-    };
-
     return (
         <div className="space-y-10 pb-20">
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-                className="text-center space-y-4"
-            >
+            <div className="text-center space-y-4">
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
                     <Shield className="w-4 h-4 text-primary" />
                     <span className="text-sm font-medium text-primary">Privacy, Terms & Contact</span>
@@ -45,14 +34,10 @@ const Legal = () => {
                     and how to get in touch.
                 </p>
                 <p className="text-sm text-gray-500">Effective date: January 27, 2026</p>
-            </motion.div>
+            </div>
 
-            <motion.section
+            <section
                 id="privacy"
-                variants={sectionVariants}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
                 className="glass-panel rounded-2xl p-6 md:p-8 border border-white/10 space-y-6"
             >
                 <div className="flex items-center gap-3">
@@ -104,14 +89,10 @@ const Legal = () => {
                         No method of transmission or storage is 100% secure.
                     </p>
                 </div>
-            </motion.section>
+            </section>
 
-            <motion.section
+            <section
                 id="terms"
-                variants={sectionVariants}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
                 className="glass-panel rounded-2xl p-6 md:p-8 border border-white/10 space-y-6"
             >
                 <div className="flex items-center gap-3">
@@ -156,14 +137,10 @@ const Legal = () => {
                         </p>
                     </div>
                 </div>
-            </motion.section>
+            </section>
 
-            <motion.section
+            <section
                 id="contact"
-                variants={sectionVariants}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
                 className="glass-panel rounded-2xl p-6 md:p-8 border border-white/10 space-y-6"
             >
                 <div className="flex items-center gap-3">
@@ -184,7 +161,7 @@ const Legal = () => {
                         <p>Autonome Provinz Bozen - Südtirol</p>
                     </div>
                 </div>
-            </motion.section>
+            </section>
         </div>
     );
 };

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { Trash2, Zap, RefreshCw, AlertCircle, MapPin, ArrowRight } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 const QueueControl = ({ embedded = false }) => {
   const [routes, setRoutes] = useState([]);
@@ -113,29 +112,21 @@ const QueueControl = ({ embedded = false }) => {
       )}
 
       {error && (
-        <motion.div 
-            initial={{ opacity: 0, y: -10 }} 
-            animate={{ opacity: 1, y: 0 }}
-            className="glass-error rounded-lg p-4 flex items-center gap-3"
-        >
+        <div className="glass-error rounded-lg p-4 flex items-center gap-3">
           <AlertCircle className="h-5 w-5 text-danger" />
           <p className="text-danger font-medium">{error}</p>
-        </motion.div>
+        </div>
       )}
 
       {successMessage && (
-        <motion.div 
-            initial={{ opacity: 0, y: -10 }} 
-            animate={{ opacity: 1, y: 0 }}
-            className="glass-panel rounded-lg p-4 flex items-center gap-3 border-l-4 border-success bg-success/10"
-        >
+        <div className="glass-panel rounded-lg p-4 flex items-center gap-3 border-l-4 border-success bg-success/10">
           <div className="h-5 w-5 rounded-full bg-success flex items-center justify-center">
             <svg className="w-3 h-3 text-dark-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
             </svg>
           </div>
           <p className="text-success font-medium">{successMessage}</p>
-        </motion.div>
+        </div>
       )}
 
       {loading && routes.length === 0 ? (
@@ -163,13 +154,7 @@ const QueueControl = ({ embedded = false }) => {
                         </thead>
                         <tbody className="divide-y divide-white/5">
                             {routes.map((route, index) => (
-                                <motion.tr 
-                                    key={route.id}
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    transition={{ delay: index * 0.05 }}
-                                    className="hover:bg-white/5 transition-colors"
-                                >
+                              <tr key={route.id} className="hover:bg-white/5 transition-colors">
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400 font-mono">
                                         #{index + 1}
                                     </td>
@@ -195,7 +180,7 @@ const QueueControl = ({ embedded = false }) => {
                                             <Trash2 className="h-5 w-5" />
                                         </button>
                                     </td>
-                                </motion.tr>
+                                  </tr>
                             ))}
                         </tbody>
                     </table>

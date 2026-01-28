@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Lock, Mail, ArrowRight } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -30,12 +29,7 @@ const Login = () => {
     <div className="min-h-[80vh] flex items-center justify-center relative overflow-hidden">
       {/* Background Elements Removed */}
 
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-        className="max-w-md w-full space-y-8 glass-panel p-8 rounded-2xl shadow-2xl border border-white/10"
-      >
+      <div className="max-w-md w-full space-y-8 glass-panel p-8 rounded-2xl shadow-2xl border border-white/10">
         <div>
           <h2 className="mt-2 text-center text-3xl font-bold text-white tracking-tight">
             Welcome Back
@@ -49,18 +43,13 @@ const Login = () => {
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-              className="bg-danger/10 border-l-4 border-danger p-4 rounded-r-md"
-            >
+            <div className="bg-danger/10 border-l-4 border-danger p-4 rounded-r-md">
               <div className="flex">
                 <div className="ml-3">
                   <p className="text-sm text-danger font-medium">{error}</p>
                 </div>
               </div>
-            </motion.div>
+            </div>
           )}
           <div className="space-y-4">
             <div className="relative group">
@@ -109,7 +98,7 @@ const Login = () => {
             </button>
           </div>
         </form>
-      </motion.div>
+      </div>
     </div>
   );
 };
