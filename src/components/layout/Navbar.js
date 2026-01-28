@@ -41,8 +41,7 @@ const Navbar = () => {
             { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
             { name: 'Diary', path: '/diary', icon: BookOpen },
             ...(user.role === 'Admin' ? [
-                { name: 'Queue', path: '/queue', icon: ListOrdered },
-                { name: 'Admin', path: '/admin', icon: Shield }
+                { name: 'Queue', path: '/queue', icon: ListOrdered }
             ] : [])
         ] : [])
     ];
@@ -160,7 +159,11 @@ const Navbar = () => {
                             {user ? (
                                 <div className="relative">
                                     <motion.button
-                                        onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                                        onMouseDown={(event) => {
+                                            event.preventDefault();
+                                            event.stopPropagation();
+                                            setIsUserMenuOpen((open) => !open);
+                                        }}
                                         className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors duration-200"
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
@@ -176,27 +179,31 @@ const Navbar = () => {
                                     </motion.button>
 
                                     {/* User Dropdown Menu */}
-                                    <AnimatePresence>
-                                        {isUserMenuOpen && (
-                                            <motion.div
-                                                initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                                exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                                                transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-                                                className="absolute right-0 mt-2 w-48 glass-panel rounded-xl border border-white/10 shadow-xl overflow-hidden"
-                                            >
-                                                <div className="p-2">
-                                                    <button
-                                                        onClick={handleLogout}
-                                                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-danger/10 text-gray-300 hover:text-danger transition-all group"
+                                    {isUserMenuOpen && (
+                                        <div
+                                            className="absolute right-0 mt-2 w-48 glass-panel rounded-xl border border-white/10 shadow-xl overflow-hidden"
+                                            onMouseDown={(event) => event.stopPropagation()}
+                                        >
+                                            <div className="p-2">
+                                                {user.role === 'Admin' && (
+                                                    <Link
+                                                        to="/admin"
+                                                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 text-gray-300 hover:text-primary transition-all group"
                                                     >
-                                                        <LogOut className="w-4 h-4 group-hover:text-danger transition-colors" />
-                                                        <span className="font-medium">Logout</span>
-                                                    </button>
-                                                </div>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
+                                                        <Shield className="w-4 h-4 group-hover:text-primary transition-colors" />
+                                                        <span className="font-medium">Admin</span>
+                                                    </Link>
+                                                )}
+                                                <button
+                                                    onClick={handleLogout}
+                                                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-danger/10 text-gray-300 hover:text-danger transition-all group"
+                                                >
+                                                    <LogOut className="w-4 h-4 group-hover:text-danger transition-colors" />
+                                                    <span className="font-medium">Logout</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             ) : (
                                 <div className="flex items-center gap-2">
@@ -291,6 +298,15 @@ const Navbar = () => {
                                                 <div className="text-xs text-gray-500 capitalize">{user.role}</div>
                                             </div>
                                         </div>
+                                        {user.role === 'Admin' && (
+                                            <Link
+                                                to="/admin"
+                                                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-all"
+                                            >
+                                                <Shield className="w-5 h-5" />
+                                                <span className="font-medium">Admin</span>
+                                            </Link>
+                                        )}
                                         <button
                                             onClick={handleLogout}
                                             className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-danger/10 border border-danger/20 text-danger hover:bg-danger/20 transition-all"
@@ -327,7 +343,7 @@ const Navbar = () => {
                 isUserMenuOpen && (
                     <div
                         className="fixed inset-0 z-40"
-                        onClick={() => setIsUserMenuOpen(false)}
+                        onMouseDown={() => setIsUserMenuOpen(false)}
                     />
                 )
             }
