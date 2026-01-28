@@ -43,12 +43,12 @@ const Landing = () => {
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-tight">
               The Future of <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
-                Office Logistics
+                Medical Care
               </span>
             </h1>
 
             <p className="text-xl text-gray-400 max-w-lg leading-relaxed">
-              Autonomous transport system for the modern workplace. Efficient, smart, and always there when you need it.
+              Autonomous transport system for the modern Care Center. Efficient, smart, and always there when you need it.
             </p>
 
             <div className="flex flex-wrap gap-4">
@@ -62,9 +62,6 @@ const Landing = () => {
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </span>
               </Link>
-              <button className="px-8 py-4 bg-white/5 text-white font-medium rounded-xl border border-white/10 hover:bg-white/10 transition-all hover:scale-105">
-                View Documentation
-              </button>
             </div>
           </div>
 
@@ -133,7 +130,7 @@ const Landing = () => {
             {
               icon: Truck,
               title: "Autonomous Navigation",
-              desc: "Advanced LIDAR mapping allows TeleTable to navigate complex office environments safely.",
+              desc: "Advanced algorithms allow TeleTable to navigate complex environments safely.",
               color: "text-primary"
             },
             {
@@ -145,7 +142,7 @@ const Landing = () => {
             {
               icon: Zap,
               title: "Smart Power",
-              desc: "Automatic return-to-base functionality ensures 99.9% uptime availability.",
+              desc: "Hot-Swappable battery allows for high uptime and availability.",
               color: "text-warning"
             }
           ].map((feature, idx) => (
@@ -165,49 +162,9 @@ const Landing = () => {
         </div>
       </div>
 
-      {/* Team Section */}
-      <div className="space-y-12">
-        <div className="text-center space-y-4">
-          <h2 className="text-primary font-medium tracking-wider uppercase">The Team</h2>
-          <p className="text-4xl font-bold text-white">Built by Engineers</p>
-        </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          {[1, 2, 3, 4, 5, 6].map((member) => (
-            <div key={member} className="group relative">
-              <div className="absolute inset-0 bg-gradient-to-b from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
-              <div className="relative p-6 rounded-2xl bg-dark-800 border border-white/5 space-y-4">
-                <div className="h-48 rounded-xl bg-dark-700 flex items-center justify-center overflow-hidden">
-                  <UserIcon className="w-20 h-20 text-gray-600" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-white">
-                    {member === 1 ? 'Lukas Weger' :
-                      member === 2 ? 'Theo Jona Stolzlechner' :
-                        member === 3 ? 'Lukas Fauster' :
-                          `Team Member ${member}`}
-                  </h3>
-                  <p className="text-primary">
-                    {member === 1 ? 'Backend & Infrastructure' :
-                      member === 2 ? 'ESP32 Programmer' :
-                        member === 3 ? 'Project Lead & 3D Development' :
-                          'Full Stack Engineer'}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 };
-
-// Simple placeholder icon for team members
-const UserIcon = ({ className }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-  </svg>
-);
 
 export default Landing;
