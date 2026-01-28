@@ -13,9 +13,13 @@ import PublicDiary from '../../pages/PublicDiary';
 import QueueControl from '../../pages/QueueControl';
 import AdminPanel from '../../pages/AdminPanel';
 import About from '../../pages/About';
+<<<<<<< HEAD
 import Privacy from '../../pages/Privacy';
 import Terms from '../../pages/Terms';
 import Contact from '../../pages/Contact';
+=======
+import Legal from '../../pages/Legal';
+>>>>>>> 2b46b26 (Add Legal page and update navigation links for privacy, terms, and contact)
 
 const AnimatedRoutes = () => {
     const location = useLocation();
@@ -56,6 +60,7 @@ const AnimatedRoutes = () => {
                     }
                 />
                 <Route
+<<<<<<< HEAD
                     path="/privacy"
                     element={
                         <PageTransition>
@@ -76,6 +81,12 @@ const AnimatedRoutes = () => {
                     element={
                         <PageTransition>
                             <Contact />
+=======
+                    path="/legal"
+                    element={
+                        <PageTransition>
+                            <Legal />
+>>>>>>> 2b46b26 (Add Legal page and update navigation links for privacy, terms, and contact)
                         </PageTransition>
                     }
                 />

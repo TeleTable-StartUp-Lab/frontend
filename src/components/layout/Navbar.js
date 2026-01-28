@@ -35,7 +35,6 @@ const Navbar = () => {
     };
 
     const navLinks = [
-        { name: 'Home', path: '/', icon: Truck },
         { name: 'About', path: '/about', icon: Info },
         { name: 'Public Diary', path: '/diary/public', icon: BookOpen },
         ...(user ? [
