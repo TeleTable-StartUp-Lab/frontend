@@ -4,14 +4,16 @@ import ManualControl from '../components/dashboard/ManualControl';
 import AutoControl from '../components/dashboard/AutoControl';
 import { RobotControlProvider } from '../context/RobotControlContext';
 import { useAuth } from '../context/AuthContext';
-import { ListOrdered, X } from 'lucide-react';
+import { ListOrdered, SlidersHorizontal, X } from 'lucide-react';
 import QueueControl from './QueueControl';
+import PeripheralControl from '../components/dashboard/PeripheralControl';
 
 const Dashboard = () => {
     const { user } = useAuth();
     const isViewer = user?.role === 'Viewer';
     const isAdmin = user?.role === 'Admin';
     const [isQueueOpen, setIsQueueOpen] = useState(false);
+    const [isPeripheralsOpen, setIsPeripheralsOpen] = useState(false);
 
     useEffect(() => {
         document.title = 'TeleTable - Dashboard';
@@ -30,21 +32,32 @@ const Dashboard = () => {
     }
 
     return (
-        <div className="space-y-8">
+        <RobotControlProvider autoConnect={false}>
+            <div className="space-y-8">
             <div className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold text-white tracking-tight">
                     Control <span className="text-primary">Dashboard</span>
                 </h1>
                 <div className="flex items-center gap-3">
                     {isAdmin && (
-                        <button
-                            onClick={() => setIsQueueOpen(true)}
-                            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
-                            title="Queue Control"
-                        >
-                            <ListOrdered className="w-4 h-4" />
-                            <span className="text-sm font-medium">Queue</span>
-                        </button>
+                        <>
+                            <button
+                                onClick={() => setIsQueueOpen(true)}
+                                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+                                title="Queue Control"
+                            >
+                                <ListOrdered className="w-4 h-4" />
+                                <span className="text-sm font-medium">Queue</span>
+                            </button>
+                            <button
+                                onClick={() => setIsPeripheralsOpen(true)}
+                                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+                                title="LED & Audio Control"
+                            >
+                                <SlidersHorizontal className="w-4 h-4" />
+                                <span className="text-sm font-medium">Peripherals</span>
+                            </button>
+                        </>
                     )}
                     <div className="flex items-center gap-2">
                         <span className="relative flex h-3 w-3">
@@ -56,26 +69,24 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            <RobotControlProvider autoConnect={false}>
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                    {/* Left Column - Status & Auto Control */}
-                    <div className="lg:col-span-7 space-y-6">
-                        <div>
-                            <Telemetry />
-                        </div>
-                        <div>
-                            <AutoControl />
-                        </div>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                {/* Left Column - Status & Auto Control */}
+                <div className="lg:col-span-7 space-y-6">
+                    <div>
+                        <Telemetry />
                     </div>
-
-                    {/* Right Column - Manual Control */}
-                    <div className="lg:col-span-5">
-                        <div className="h-full">
-                            <ManualControl />
-                        </div>
+                    <div>
+                        <AutoControl />
                     </div>
                 </div>
-            </RobotControlProvider>
+
+                {/* Right Column - Manual Control */}
+                <div className="lg:col-span-5">
+                    <div className="h-full">
+                        <ManualControl />
+                    </div>
+                </div>
+            </div>
 
             {isQueueOpen && (
                 <div
@@ -105,7 +116,17 @@ const Dashboard = () => {
                     </div>
                 </div>
             )}
-        </div>
+
+            {isPeripheralsOpen && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+                    onMouseDown={() => setIsPeripheralsOpen(false)}
+                >
+                    <PeripheralControl onClose={() => setIsPeripheralsOpen(false)} />
+                </div>
+            )}
+            </div>
+        </RobotControlProvider>
     );
 };
 
