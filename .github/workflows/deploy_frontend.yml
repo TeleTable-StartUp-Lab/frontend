@@ -1,0 +1,18 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/deploy_frontend.yml"
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Deploy Frontend
+        run: |
+          cd /home/lukas/srv
+          sudo ./deploy_frontend.sh
