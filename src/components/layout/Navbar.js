@@ -64,23 +64,23 @@ const Navbar = () => {
                     : 'bg-transparent'
                     }`}
             >
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between h-14">
+                <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+                    <div className="flex items-center justify-between h-12 md:h-14">
                         {/* Left side - Logo and Navigation */}
                         <div className="flex items-center gap-6">
                             {/* Logo */}
                             <Link
                                 to="/"
-                                className="flex items-center gap-3 group"
+                                className="flex items-center gap-2 md:gap-3 group"
                             >
                                 <div className="relative">
                                     <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full group-hover:bg-primary/40 transition-all duration-300" />
-                                    <div className="relative p-1.5 bg-gradient-to-br from-primary to-secondary rounded-lg">
-                                        <Truck className="w-5 h-5 text-dark-900" />
+                                    <div className="relative p-1 md:p-1.5 bg-gradient-to-br from-primary to-secondary rounded-lg">
+                                        <Truck className="w-4 md:w-5 h-4 md:h-5 text-dark-900" />
                                     </div>
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-lg font-bold text-white tracking-tight">
+                                    <span className="text-base md:text-lg font-bold text-white tracking-tight">
                                         Tele<span className="text-primary">Table</span>
                                     </span>
                                 </div>
@@ -121,14 +121,14 @@ const Navbar = () => {
                         <div className="hidden lg:flex items-center gap-3">
                             <button
                                 onClick={toggleTheme}
-                                className="flex items-center justify-center w-9 h-9 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors duration-200"
+                                className="flex items-center justify-center w-8 md:w-9 h-8 md:h-9 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors duration-200"
                                 aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
                                 title={theme === 'light' ? 'Dark mode' : 'Light mode'}
                             >
                                 {theme === 'light' ? (
-                                    <Moon className="w-4 h-4 text-gray-300" />
+                                    <Moon className="w-3.5 md:w-4 h-3.5 md:h-4 text-gray-300" />
                                 ) : (
-                                    <Sun className="w-4 h-4 text-gray-300" />
+                                    <Sun className="w-3.5 md:w-4 h-3.5 md:h-4 text-gray-300" />
                                 )}
                             </button>
                             {user ? (
@@ -139,12 +139,12 @@ const Navbar = () => {
                                             event.stopPropagation();
                                             setIsUserMenuOpen((open) => !open);
                                         }}
-                                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors duration-200"
+                                        className="flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-1 md:py-1.5 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors duration-200"
                                     >
-                                        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-                                            <User className="w-3.5 h-3.5 text-dark-900" />
+                                        <div className="w-6 md:w-7 h-6 md:h-7 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                                            <User className="w-3 md:w-3.5 h-3 md:h-3.5 text-dark-900" />
                                         </div>
-                                        <div className="text-left">
+                                        <div className="text-left hidden sm:block">
                                             <div className="text-xs font-medium text-white">{user.name}</div>
                                             <div className="text-[10px] text-gray-500 capitalize">{user.role}</div>
                                         </div>
@@ -199,12 +199,12 @@ const Navbar = () => {
                         {/* Mobile Menu Button */}
                         <button
                             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                            className="lg:hidden p-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors duration-200"
+                            className="lg:hidden p-1.5 md:p-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors duration-200"
                         >
                             {isMobileMenuOpen ? (
-                                <X className="w-6 h-6 text-white" />
+                                <X className="w-5 md:w-6 h-5 md:h-6 text-white" />
                             ) : (
-                                <Menu className="w-6 h-6 text-white" />
+                                <Menu className="w-5 md:w-6 h-5 md:h-6 text-white" />
                             )}
                         </button>
                     </div>
