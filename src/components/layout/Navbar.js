@@ -33,12 +33,14 @@ const Navbar = () => {
         navigate('/');
     };
 
+    const isViewer = user?.role === 'Viewer';
+
     const navLinks = [
         { name: 'About', path: '/about', icon: Info },
         { name: 'Public Diary', path: '/diary/public', icon: BookOpen },
         ...(user ? [
             { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-            { name: 'Diary', path: '/diary', icon: BookOpen }
+            ...(isViewer ? [] : [{ name: 'Diary', path: '/diary', icon: BookOpen }])
         ] : [])
     ];
 
