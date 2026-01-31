@@ -1,16 +1,16 @@
-# Frontend-Backend-Kommunikation (Planung)
+# Frontend-Backend-Kommunikation
 
 ## Ziel
 Dokumentation der geplanten Kommunikation zwischen Frontend und Backend, bevor die Implementierung erfolgt. Fokus auf Endpunkte, Auth-Strategie, Datenflüsse und Fehlerbehandlung.
 
-## Architektur (Planung)
+## Architektur
 - Frontend: React SPA
 - Backend: REST API
 - Kommunikation via JSON over HTTPS
 - Authentifizierung via Token (z. B. JWT)
 - Zentraler API-Layer im Frontend
 
-## API-Schicht im Frontend (Planung)
+## API-Schicht im Frontend
 - Datei: services/api.js
 - Aufgaben:
   - Basis-URL
@@ -18,14 +18,14 @@ Dokumentation der geplanten Kommunikation zwischen Frontend und Backend, bevor d
   - Token-Handling
   - Standardisierte Fehlerbehandlung
 
-## Auth-Flow (Planung)
+## Auth-Flow
 1. Benutzer meldet sich an (Login-Form)
 2. Frontend sendet Credentials an /auth/login
 3. Backend liefert Token + User-Info
 4. Token wird gespeichert (Memory/Storage)
 5. Token wird bei jedem Request im Header mitgesendet
 
-### Headers (Planung)
+### Headers
 - Authorization: Bearer <token>
 - Content-Type: application/json
 
@@ -54,7 +54,7 @@ Dokumentation der geplanten Kommunikation zwischen Frontend und Backend, bevor d
 - GET /admin/users
 - PUT /admin/users/:id/role
 
-## Datenmodelle (Planung)
+## Datenmodelle
 
 ### User
 ```json
@@ -86,7 +86,7 @@ Dokumentation der geplanten Kommunikation zwischen Frontend und Backend, bevor d
 }
 ```
 
-## Fehlerbehandlung (Planung)
+## Fehlerbehandlung
 - Einheitliches Fehlerformat vom Backend:
 ```json
 {
@@ -98,18 +98,18 @@ Dokumentation der geplanten Kommunikation zwischen Frontend und Backend, bevor d
 - Frontend zeigt Toast/Alert an
 - Bei 401: Logout & Redirect zu Login
 
-## Caching & Revalidation (Planung)
+## Caching & Revalidation
 - Kurze Polling-Intervalle für Robot-Status
 - Keine aggressive Cache-Strategie
 - Optional: ETag/If-None-Match
 
-## Sicherheitsaspekte (Planung)
+## Sicherheitsaspekte
 - HTTPS-only
 - Token nicht in URLs
 - Minimal Scope pro Rolle
 - CSRF-Strategie falls Cookies genutzt werden
 
-## Sequenzdiagramm (Planung)
+## Sequenzdiagramm
 
 ```mermaid
 sequenceDiagram
@@ -126,7 +126,7 @@ sequenceDiagram
   FE-->>U: Dashboard aktualisiert
 ```
 
-## ToDos (Planung)
+## ToDos
 - Endpunktliste finalisieren
 - Fehlercodes standardisieren
 - Rollenmatrix definieren

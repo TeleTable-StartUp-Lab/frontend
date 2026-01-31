@@ -36,7 +36,7 @@ Eine moderne, klare Weboberfläche. Fokus auf schnelle Orientierung, sichere Aut
 - Login
 - Register
 
-## Rollen & Rechte (Planung)
+## Rollen & Rechte
 - Visitor (öffentlich)
   - Landing, About, Contact, Legal, Privacy, Terms, Public Diary
 - User (authentifiziert)
@@ -44,7 +44,7 @@ Eine moderne, klare Weboberfläche. Fokus auf schnelle Orientierung, sichere Aut
 - Admin
   - Admin Panel, erweiterte Queue-Steuerung, Nutzerverwaltung
 
-## Layout & Komponenten (Planung)
+## Layout & Komponenten
 - Globales Layout
   - Top-Navigation mit Logo, Hauptlinks, Auth-Status
   - Footer mit Legal/Privacy/Terms
@@ -99,7 +99,7 @@ Eine moderne, klare Weboberfläche. Fokus auf schnelle Orientierung, sichere Aut
 ### Rechtliche Seiten
 - Legal/Privacy/Terms als statische Seiten
 
-## Datenobjekte (Planung)
+## Datenobjekte
 - User
   - id, name, email, role
 - DiaryEntry
@@ -135,7 +135,7 @@ flowchart LR
   Pages --> Services[API Service]
 ```
 
-## Meilensteine (Planung)
+## Meilensteine
 1. IA/Sitemap finalisieren
 2. UI Wireframes
 3. Routing & Layout
