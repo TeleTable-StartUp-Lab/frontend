@@ -27,6 +27,7 @@ const About = () => {
             name: 'Gabriel Mirandola',
             role: '3D-Designer',
             description: 'I’m responsible for the full 3D development of the table, covering mechanical design, hardware integration, and all structural details. I translate requirements into precise models, ensuring every part fits together both functionally and manufacturably. Beyond the physical design, I support the team on the electronics side — selecting components, planning integration points, and making sure the hardware layout aligns with the overall system. I also assist with embedded work when needed, helping bridge the gap between mechanical, electrical, and firmware development so the whole system operates as intended.',
+            image: '/Gabriel_Mirandola.webp',
         },
         {
             name: 'Tobias Bucci',

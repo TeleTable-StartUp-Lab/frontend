@@ -79,14 +79,14 @@ const QueueControl = ({ embedded = false }) => {
               className="p-2 rounded-lg bg-dark-800 text-gray-400 hover:text-white hover:bg-dark-700 transition-colors"
               title="Refresh"
               >
-              <RefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`h-5 w-5 ${loading && !embedded ? 'animate-spin' : ''}`} />
               </button>
               <button
               onClick={handleOptimize}
               disabled={optimizing || routes.length < 2}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-bold rounded-xl shadow-sm text-dark-900 bg-primary hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary focus:ring-offset-dark-900 transition-all hover:shadow-[0_0_15px_rgba(0,240,255,0.3)]"
               >
-              <Zap className={`h-5 w-5 mr-2 ${optimizing ? 'animate-pulse' : ''}`} />
+                <Zap className={`h-5 w-5 mr-2 ${optimizing && !embedded ? 'animate-pulse' : ''}`} />
               {optimizing ? 'Optimizing...' : 'Optimize Queue'}
               </button>
           </div>
@@ -98,14 +98,14 @@ const QueueControl = ({ embedded = false }) => {
             className="p-2 rounded-lg bg-dark-800 text-gray-400 hover:text-white hover:bg-dark-700 transition-colors"
             title="Refresh"
           >
-            <RefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-5 w-5 ${loading && !embedded ? 'animate-spin' : ''}`} />
           </button>
           <button
             onClick={handleOptimize}
             disabled={optimizing || routes.length < 2}
             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-bold rounded-xl shadow-sm text-dark-900 bg-primary hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary focus:ring-offset-dark-900 transition-all hover:shadow-[0_0_15px_rgba(0,240,255,0.3)]"
           >
-            <Zap className={`h-5 w-5 mr-2 ${optimizing ? 'animate-pulse' : ''}`} />
+            <Zap className={`h-5 w-5 mr-2 ${optimizing && !embedded ? 'animate-pulse' : ''}`} />
             {optimizing ? 'Optimizing...' : 'Optimize Queue'}
           </button>
         </div>
@@ -131,7 +131,7 @@ const QueueControl = ({ embedded = false }) => {
 
       {loading && routes.length === 0 ? (
         <div className="glass-panel rounded-xl border border-white/10 flex justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className={`${embedded ? '' : 'animate-spin '}rounded-full h-8 w-8 border-b-2 border-primary`}></div>
         </div>
       ) : (
         <div className="glass-panel rounded-xl border border-white/10 overflow-hidden">
