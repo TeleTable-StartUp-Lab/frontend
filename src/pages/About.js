@@ -17,11 +17,13 @@ const About = () => {
             name: 'Theo Jona Stolzlechner',
             role: 'Embedded Systems Developer',
             description: 'I am responsible for all embedded systems development in our project, focusing on programming the ESP32 in C. I design and implement the core logic that enables our autonomous table to drive, navigate, and interact safely with its environment. I enjoy solving complex technical problems, writing clean and efficient code, and making sure hardware and software work seamlessly together. I\'m someone who learns quickly, stays calm under pressure, and collaborates well with the team to turn ideas into real, working systems.',
+            image: '/Theo_Stolzlechner.webp'
         },
         {
             name: 'Lukas Fauster',
             role: 'Project Lead & 3D Development',
             description: 'I\'m responsible for leading and coordinating the project, making sure everyone stays aligned, organized, and moving in the same direction. I also contribute to our 3D development and technical drawings, working together with the others to turn ideas into clear, structured models. And whenever someone on the team needs help or runs into a hurdle, I\'m always ready to support them — whether it\'s solving a problem, giving feedback, or just keeping things on track. With a mix of coordination, technical contribution, and team support, I help ensure the project runs smoothly and keeps its momentum.',
+            image: 'Lukas_Fauster.webp',
         },
         {
             name: 'Gabriel Mirandola',
@@ -31,14 +33,15 @@ const About = () => {
         },
         {
             name: 'Tobias Bucci',
-            role: 'Software Engineer',
-            description: 'Develops core features and optimizes performance. Always looking for elegant solutions to complex problems.',
+            role: 'Frontend Lead Engineer',
+            description: 'I develop the core features of the web frontend and take responsibility for overarching frontend architecture and design decisions. My work focuses on building performant, maintainable interfaces while setting clear design and technical standards for the UI layer. I translate complex requirements into intuitive user experiences and ensure consistency across the product. With strong frontend fundamentals and attention to detail, I handle the visual and interaction layer so other team members can concentrate on the more backend-heavy aspects of development.',
             image: '/Tobias_Bucci.webp',
         },
         {
-            name: 'Team Member 6',
-            role: 'Product Designer',
-            description: 'Designs user experiences and interfaces. Focuses on making technology accessible to everyone.',
+            name: 'Lukas Abfalterer',
+            role: 'Mobile Frontend Engineer',
+            description: 'I am responsible for developing the mobile frontend of the project. I design and implement the application using Flutter and Dart, ensuring a single, clean codebase that runs consistently across all major platforms. My focus is on building a reliable, well-structured UI, integrating backend APIs cleanly, and maintaining performance and usability as features evolve. I work independently, iterate quickly, and make sure the mobile app stays aligned with the overall product vision.',
+            image: '/Lukas_Abfalterer.webp',
         },
     ];
 
