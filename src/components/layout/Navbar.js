@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Truck, User, LogOut, BookOpen, LayoutDashboard, Info, Shield, Sun, Moon } from 'lucide-react';
+import { Menu, X, User, LogOut, BookOpen, LayoutDashboard, Info, Shield, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -74,10 +74,12 @@ const Navbar = () => {
                                 className="flex items-center gap-2 md:gap-3 group"
                             >
                                 <div className="relative">
-                                    <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full group-hover:bg-primary/40 transition-all duration-300" />
-                                    <div className="relative p-1 md:p-1.5 bg-gradient-to-br from-primary to-secondary rounded-lg">
-                                        <Truck className="w-4 md:w-5 h-4 md:h-5 text-dark-900" />
-                                    </div>
+                                    <img
+                                        src="/favicon.svg"
+                                        alt="TeleTable"
+                                        className="w-7 md:w-8 h-7 md:h-8"
+                                        loading="eager"
+                                    />
                                 </div>
                                 <div className="flex flex-col">
                                     <span className="text-base md:text-lg font-bold text-white tracking-tight">

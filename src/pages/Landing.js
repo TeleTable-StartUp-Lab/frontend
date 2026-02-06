@@ -1,28 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Truck, Battery, Wifi, Zap, Server } from 'lucide-react';
-import api from '../services/api';
+import { ArrowRight, Truck, Wifi, Zap } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Landing = () => {
   const { user } = useAuth();
-  const [backendOnline, setBackendOnline] = useState(true);
 
   useEffect(() => {
     document.title = 'TeleTable - Home';
-
-    const checkBackend = async () => {
-      try {
-        await api.get('/');
-        setBackendOnline(true);
-      } catch (error) {
-        setBackendOnline(false);
-      }
-    };
-
-    checkBackend();
-    const interval = setInterval(checkBackend, 30000);
-    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -69,49 +54,12 @@ const Landing = () => {
             <div className="relative w-full aspect-square max-w-lg">
               <div className="absolute inset-0 bg-gradient-to-tr from-primary to-secondary rounded-full blur-[100px] opacity-20" />
               <div className="relative z-10 w-full h-full flex items-center justify-center">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary blur-3xl opacity-50" />
-                  <Truck className="relative w-64 h-64 text-primary drop-shadow-[0_0_40px_rgba(0,240,255,0.6)]" strokeWidth={1.5} />
-                </div>
-              </div>
-
-              {/* Floating Stats Cards */}
-              <div className="absolute top-10 right-0 p-4 glass-panel rounded-xl border border-white/10">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-success/20 rounded-lg">
-                    <Battery className="w-6 h-6 text-success" />
-                  </div>
-                  <div>
-                    <div className="text-xs text-gray-400">Battery Status</div>
-                    <div className="text-lg font-bold text-white">98%</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="absolute bottom-20 left-0 p-4 glass-panel rounded-xl border border-white/10">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/20 rounded-lg">
-                    <Wifi className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <div className="text-xs text-gray-400">Signal Strength</div>
-                    <div className="text-lg font-bold text-white">Excellent</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="absolute top-1/2 -right-4 p-4 glass-panel rounded-xl border border-white/10">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 ${backendOnline ? 'bg-success/20' : 'bg-danger/20'} rounded-lg`}>
-                    <Server className={`w-6 h-6 ${backendOnline ? 'text-success' : 'text-danger'}`} />
-                  </div>
-                  <div>
-                    <div className="text-xs text-gray-400">Backend Status</div>
-                    <div className={`text-lg font-bold ${backendOnline ? 'text-success' : 'text-danger'}`}>
-                      {backendOnline ? 'Online' : 'Offline'}
-                    </div>
-                  </div>
-                </div>
+                <img
+                  src="/favicon.svg"
+                  alt="TeleTable"
+                  className="w-72 sm:w-80 md:w-96 lg:w-[420px] drop-shadow-[0_0_40px_rgba(0,240,255,0.5)]"
+                  loading="eager"
+                />
               </div>
             </div>
           </div>
