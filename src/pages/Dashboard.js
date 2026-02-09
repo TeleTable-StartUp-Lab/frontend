@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Telemetry from '../components/dashboard/Telemetry';
 import ManualControl from '../components/dashboard/ManualControl';
 import AutoControl from '../components/dashboard/AutoControl';
@@ -30,6 +31,51 @@ const Dashboard = () => {
             </RobotControlProvider>
         );
     }
+
+    const canUseDom = typeof document !== 'undefined';
+    const queueModal = isQueueOpen && canUseDom
+        ? createPortal(
+            <div
+                className="fixed inset-0 z-[60] flex items-center justify-center p-2 md:p-4 bg-black/60 backdrop-blur-sm"
+                onMouseDown={() => setIsQueueOpen(false)}
+            >
+                <div
+                    className="w-full max-w-5xl max-h-[90vh] md:max-h-[85vh] overflow-y-auto glass-panel rounded-xl md:rounded-2xl border border-white/10 shadow-2xl"
+                    onMouseDown={(event) => event.stopPropagation()}
+                >
+                    <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-white/10">
+                        <div className="flex items-center gap-2">
+                            <ListOrdered className="w-4 md:w-5 h-4 md:h-5 text-primary" />
+                            <h2 className="text-base md:text-lg font-bold text-white">Queue Control</h2>
+                        </div>
+                        <button
+                            onClick={() => setIsQueueOpen(false)}
+                            className="p-1.5 md:p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                            aria-label="Close queue control"
+                        >
+                            <X className="w-4 md:w-5 h-4 md:h-5" />
+                        </button>
+                    </div>
+                    <div className="p-4 md:p-6">
+                        <QueueControl embedded />
+                    </div>
+                </div>
+            </div>,
+            document.body
+        )
+        : null;
+
+    const peripheralsModal = isPeripheralsOpen && canUseDom
+        ? createPortal(
+            <div
+                className="fixed inset-0 z-[60] flex items-center justify-center p-2 md:p-4 bg-black/60 backdrop-blur-sm"
+                onMouseDown={() => setIsPeripheralsOpen(false)}
+            >
+                <PeripheralControl onClose={() => setIsPeripheralsOpen(false)} />
+            </div>,
+            document.body
+        )
+        : null;
 
     return (
         <RobotControlProvider autoConnect={false}>
@@ -90,43 +136,8 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            {isQueueOpen && (
-                <div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-2 md:p-4 bg-black/60 backdrop-blur-sm"
-                    onMouseDown={() => setIsQueueOpen(false)}
-                >
-                    <div
-                        className="w-full max-w-5xl max-h-[90vh] md:max-h-[85vh] overflow-y-auto glass-panel rounded-xl md:rounded-2xl border border-white/10 shadow-2xl"
-                        onMouseDown={(event) => event.stopPropagation()}
-                    >
-                        <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-white/10">
-                            <div className="flex items-center gap-2">
-                                <ListOrdered className="w-4 md:w-5 h-4 md:h-5 text-primary" />
-                                <h2 className="text-base md:text-lg font-bold text-white">Queue Control</h2>
-                            </div>
-                            <button
-                                onClick={() => setIsQueueOpen(false)}
-                                className="p-1.5 md:p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
-                                aria-label="Close queue control"
-                            >
-                                <X className="w-4 md:w-5 h-4 md:h-5" />
-                            </button>
-                        </div>
-                        <div className="p-4 md:p-6">
-                            <QueueControl embedded />
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {isPeripheralsOpen && (
-                <div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-2 md:p-4 bg-black/60 backdrop-blur-sm"
-                    onMouseDown={() => setIsPeripheralsOpen(false)}
-                >
-                    <PeripheralControl onClose={() => setIsPeripheralsOpen(false)} />
-                </div>
-            )}
+            {queueModal}
+            {peripheralsModal}
             </div>
         </RobotControlProvider>
     );
