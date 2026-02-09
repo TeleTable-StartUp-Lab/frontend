@@ -28,7 +28,7 @@ const AutoControl = () => {
 
   useEffect(() => {
     fetchNodes();
-    const intervalId = setInterval(fetchNodes, 3000);
+    const intervalId = setInterval(fetchNodes, 600000);
     return () => clearInterval(intervalId);
   }, [fetchNodes]);
 
