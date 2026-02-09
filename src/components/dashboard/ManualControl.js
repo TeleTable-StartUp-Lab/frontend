@@ -16,8 +16,17 @@ const ManualControl = () => {
   const maxLinear = 1.0;
   const maxAngular = 2.0;
 
-  // Deaktiviere Scrolling wenn Joystick aktiv ist (wichtig für mobile Geräte)
+  const isTouchDevice = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    const coarsePointer = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    const touchPoints = navigator.maxTouchPoints > 0;
+    return Boolean(coarsePointer || touchPoints);
+  }, []);
+
+  // Deaktiviere Scrolling wenn Joystick aktiv ist (nur mobile Geräte)
   useEffect(() => {
+    if (!isTouchDevice) return;
+
     if (isDragging) {
       // Verhindere Scrolling auf dem gesamten Body
       document.body.style.overflow = 'hidden';
@@ -37,11 +46,11 @@ const ManualControl = () => {
       document.body.style.touchAction = '';
       document.documentElement.style.overscrollBehavior = '';
     };
-  }, [isDragging]);
+  }, [isDragging, isTouchDevice]);
 
-  const sendDriveCommand = useCallback((linear, angular) => {
+  const sendDriveCommand = useCallback((linear, angular, force = false) => {
     const now = Date.now();
-    if (now - lastSendRef.current < 80) return;
+    if (!force && now - lastSendRef.current < 80) return;
     lastSendRef.current = now;
     sendCommand({
       command: 'DRIVE_COMMAND',
@@ -72,7 +81,7 @@ const ManualControl = () => {
   }, [maxAngular, maxLinear, sendDriveCommand]);
 
   const handleDragEnd = () => {
-    sendDriveCommand(0, 0);
+    sendDriveCommand(0, 0, true);
   };
 
   const handlePointerDown = (event) => {
