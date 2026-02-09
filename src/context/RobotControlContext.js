@@ -43,6 +43,11 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
 
     socket.onclose = () => {
       setWsStatus('disconnected');
+      if (!navigator.onLine) {
+        setWsError('Offline');
+      } else {
+        setWsError('WebSocket disconnected');
+      }
     };
 
     socket.onerror = () => {
@@ -148,6 +153,30 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
       window.removeEventListener('beforeunload', handlePageLeave);
     };
   }, [releaseLockOnExit]);
+
+  useEffect(() => {
+    const handleOffline = () => {
+      setWsStatus('error');
+      setWsError('Offline');
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+    };
+
+    const handleOnline = () => {
+      setWsError('');
+      setWsStatus((prev) => (prev === 'error' ? 'disconnected' : prev));
+    };
+
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('online', handleOnline);
+    };
+  }, []);
 
   const value = useMemo(
     () => ({
