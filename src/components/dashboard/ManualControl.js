@@ -13,6 +13,9 @@ const ManualControl = () => {
   const [isDragging, setIsDragging] = useState(false);
   const constraintsRef = useRef(null);
   const lastSendRef = useRef(0);
+  const targetPosRef = useRef({ x: 0, y: 0 });
+  const displayPosRef = useRef({ x: 0, y: 0 });
+  const animationRef = useRef(null);
   const maxLinear = 1.0;
   const maxAngular = 2.0;
 
@@ -84,6 +87,34 @@ const ManualControl = () => {
     sendDriveCommand(0, 0, true);
   };
 
+  useEffect(() => {
+    const smoothing = 0.18;
+    const tick = () => {
+      const target = targetPosRef.current;
+      const current = displayPosRef.current;
+      const nextX = current.x + (target.x - current.x) * smoothing;
+      const nextY = current.y + (target.y - current.y) * smoothing;
+      const isClose = Math.abs(nextX - target.x) < 0.5 && Math.abs(nextY - target.y) < 0.5;
+      const resolvedX = isClose ? target.x : nextX;
+      const resolvedY = isClose ? target.y : nextY;
+
+      if (resolvedX !== current.x || resolvedY !== current.y) {
+        displayPosRef.current = { x: resolvedX, y: resolvedY };
+        setDragPos({ x: resolvedX, y: resolvedY });
+        updateFromOffset(resolvedX, resolvedY);
+      }
+
+      animationRef.current = requestAnimationFrame(tick);
+    };
+
+    animationRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [updateFromOffset]);
+
   const handlePointerDown = (event) => {
     event.currentTarget.setPointerCapture(event.pointerId);
     setIsDragging(true);
@@ -102,14 +133,13 @@ const ManualControl = () => {
     const clampedX = Math.max(-maxRadius, Math.min(maxRadius, rawX));
     const clampedY = Math.max(-maxRadius, Math.min(maxRadius, rawY));
 
-    setDragPos({ x: clampedX, y: clampedY });
-    updateFromOffset(clampedX, clampedY);
+    targetPosRef.current = { x: clampedX, y: clampedY };
   };
 
   const handlePointerUp = (event) => {
     event.currentTarget.releasePointerCapture(event.pointerId);
     setIsDragging(false);
-    setDragPos({ x: 0, y: 0 });
+    targetPosRef.current = { x: 0, y: 0 };
     handleDragEnd();
   };
 
@@ -232,7 +262,7 @@ const ManualControl = () => {
         {/* Joystick Base */}
         <div
           ref={constraintsRef}
-          className="relative w-56 h-56 md:w-64 md:h-64 rounded-full bg-dark-800/50 border-2 border-white/5 shadow-inner flex items-center justify-center backdrop-blur-sm touch-none"
+          className="relative w-64 h-64 md:w-72 md:h-72 rounded-full bg-dark-800/50 border-2 border-white/5 shadow-inner flex items-center justify-center backdrop-blur-sm touch-none"
         >
           {/* Decorative Grid/Lines */}
           <div className="absolute inset-0 rounded-full opacity-20 pointer-events-none">
@@ -250,21 +280,21 @@ const ManualControl = () => {
               if (isDragging) {
                 event.currentTarget.releasePointerCapture(event.pointerId);
                 setIsDragging(false);
-                setDragPos({ x: 0, y: 0 });
+                targetPosRef.current = { x: 0, y: 0 };
                 handleDragEnd();
               }
             }}
             onPointerLeave={() => {
               if (isDragging) {
                 setIsDragging(false);
-                setDragPos({ x: 0, y: 0 });
+                targetPosRef.current = { x: 0, y: 0 };
                 handleDragEnd();
               }
             }}
             style={{ transform: `translate(${dragPos.x}px, ${dragPos.y}px)`, touchAction: 'none' }}
-            className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-primary to-secondary shadow-[0_0_30px_rgba(0,240,255,0.3)] cursor-grab active:cursor-grabbing flex items-center justify-center relative z-10 touch-none"
+            className="w-24 h-24 md:w-28 md:h-28 rounded-full bg-gradient-to-br from-primary to-secondary shadow-[0_0_30px_rgba(0,240,255,0.3)] cursor-grab active:cursor-grabbing flex items-center justify-center relative z-10 touch-none"
           >
-            <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-white/10 backdrop-blur-md border border-white/20"></div>
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/10 backdrop-blur-md border border-white/20"></div>
           </div>
         </div>
       </div>
