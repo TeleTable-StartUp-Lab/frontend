@@ -155,18 +155,40 @@ const Navbar = () => {
                                     {/* User Dropdown Menu */}
                                     {isUserMenuOpen && (
                                         <div
-                                            className="absolute right-0 mt-2 w-48 glass-panel rounded-xl border border-white/10 shadow-xl overflow-hidden"
+                                            className="absolute right-0 mt-2 w-64 glass-panel rounded-xl border border-white/10 shadow-xl overflow-hidden"
                                             onMouseDown={(event) => event.stopPropagation()}
                                         >
                                             <div className="p-2">
                                                 {user.role === 'Admin' && (
-                                                    <Link
-                                                        to="/admin"
-                                                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 text-gray-300 hover:text-primary transition-all group"
-                                                    >
-                                                        <Shield className="w-4 h-4 group-hover:text-primary transition-colors" />
-                                                        <span className="font-medium">Admin</span>
-                                                    </Link>
+                                                    <>
+                                                        <Link
+                                                            to="/admin"
+                                                            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 text-gray-300 hover:text-primary transition-all group"
+                                                        >
+                                                            <Shield className="w-4 h-4 group-hover:text-primary transition-colors" />
+                                                            <span className="font-medium">Admin</span>
+                                                        </Link>
+
+                                                        <a
+                                                            href="/admin/dozzle/"
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="mt-2 w-full flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white transition-all"
+                                                        >
+                                                            <img src="/dozzle.svg" alt="Dozzle" className="w-5 h-5" />
+                                                            <span className="font-medium">Dozzle</span>
+                                                        </a>
+
+                                                        <a
+                                                            href="http://10.10.31.13:8080/dashboard"
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="mt-2 w-full flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white transition-all"
+                                                        >
+                                                            <img src="/uptime.svg" alt="Uptime Kuma" className="w-5 h-5" />
+                                                            <span className="font-medium">Uptime Kuma</span>
+                                                        </a>
+                                                    </>
                                                 )}
                                                 <button
                                                     onClick={handleLogout}
