@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import DiaryList from '../components/diary/DiaryList';
+import DiaryBarChart from '../components/diary/DiaryBarChart';
 
 const PublicDiary = () => {
   const [entries, setEntries] = useState([]);
@@ -30,6 +31,8 @@ const PublicDiary = () => {
         <h1 className="text-2xl font-bold text-white">Public Diary</h1>
         <div className="text-xs text-gray-400">Read-only</div>
       </div>
+
+      <DiaryBarChart entries={entries} />
 
       {error && (
         <div className="glass-error rounded-lg p-4">
