@@ -162,6 +162,14 @@ code {
   background-color: rgba(241, 245, 249, 0.7);
 }
 
+.theme-light .focus\:bg-dark-800:focus {
+  background-color: #f1f5f9;
+}
+
+.theme-light .hover\:bg-dark-800\/80:hover {
+  background-color: rgba(241, 245, 249, 0.9);
+}
+
 .theme-light .bg-dark-900\/80 {
   background-color: rgba(248, 250, 252, 0.85);
 }
