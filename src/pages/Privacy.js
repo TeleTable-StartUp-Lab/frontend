@@ -64,7 +64,7 @@ const Privacy = () => {
                 <div className="glass-panel rounded-xl p-8 border border-white/10">
                     <h2 className="text-2xl font-bold text-white mb-4">Contact Us</h2>
                     <p className="text-gray-400 leading-relaxed">
-                        If you have any questions about this Privacy Policy, please contact us at privacy@teletable.com
+                        If you have any questions about this Privacy Policy, please contact us at privacy@teletable.net
                     </p>
                 </div>
             </div>

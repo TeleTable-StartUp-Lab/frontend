@@ -34,7 +34,7 @@ const Contact = () => {
                         <Mail className="w-6 h-6 text-primary" />
                     </div>
                     <h3 className="text-lg font-bold text-white mb-2">Email</h3>
-                    <p className="text-gray-400">contact@teletable.com</p>
+                    <p className="text-gray-400">contact@teletable.net</p>
                 </div>
 
                 <div className="glass-panel rounded-xl p-6 border border-white/10 text-center">
