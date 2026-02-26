@@ -180,7 +180,7 @@ const Navbar = () => {
                                                         </a>
 
                                                         <a
-                                                            href="http://10.10.31.13:8080/dashboard"
+                                                            href="https://uptime.teletable.net"
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                             className="mt-2 w-full flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white transition-all"
