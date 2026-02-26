@@ -59,6 +59,7 @@ const Landing = () => {
                   alt="TeleTable"
                   className="w-72 sm:w-80 md:w-96 lg:w-[420px] drop-shadow-[0_0_40px_rgba(0,240,255,0.5)]"
                   loading="eager"
+                  fetchpriority="high"
                 />
               </div>
             </div>

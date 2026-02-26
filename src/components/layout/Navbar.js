@@ -79,6 +79,7 @@ const Navbar = () => {
                                         alt="TeleTable"
                                         className="w-7 md:w-8 h-7 md:h-8"
                                         loading="eager"
+                                        fetchpriority="high"
                                     />
                                 </div>
                                 <div className="flex flex-col">
@@ -224,6 +225,7 @@ const Navbar = () => {
                         <button
                             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                             className="lg:hidden p-1.5 md:p-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors duration-200"
+                            aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
                         >
                             {isMobileMenuOpen ? (
                                 <X className="w-5 md:w-6 h-5 md:h-6 text-white" />
@@ -261,6 +263,7 @@ const Navbar = () => {
                                 <button
                                     onClick={toggleTheme}
                                     className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all bg-white/5 border border-white/5 text-gray-300 hover:bg-white/10 hover:text-white"
+                                    aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
                                 >
                                     {theme === 'light' ? (
                                         <Moon className="w-5 h-5" />

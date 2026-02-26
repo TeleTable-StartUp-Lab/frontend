@@ -68,8 +68,10 @@
   </script>
 
   <!-- Performance: preconnect to common third-party origins -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
-  <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+  <link rel="preload" as="image" href="%PUBLIC_URL%/favicon.svg" fetchpriority="high" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 </head>
 
 <body>
