@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import api from '../services/api';
+import { collectFingerprintData } from '../services/fingerprint';
 
 const AuthContext = createContext(null);
 
@@ -25,7 +26,8 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
-    const response = await api.post('/login', { email, password });
+    const fingerprintData = await collectFingerprintData();
+    const response = await api.post('/login', { email, password, fingerprintData });
     const { token } = response.data;
     localStorage.setItem('token', token);
     // After login, fetch user details
@@ -35,7 +37,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (name, email, password) => {
-    await api.post('/register', { name, email, password });
+    const fingerprintData = await collectFingerprintData();
+    await api.post('/register', { name, email, password, fingerprintData });
   };
 
   const logout = () => {

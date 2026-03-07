@@ -1,6 +1,32 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Trash2, Edit2, X, Search } from 'lucide-react';
+import { Shield, Trash2, Edit2, X, Search, ChevronDown, ChevronUp } from 'lucide-react';
 import api from '../services/api';
+
+const formatDateTime = (value) => {
+    if (!value) {
+        return '—';
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+        return value;
+    }
+
+    return parsed.toLocaleString();
+};
+
+const parseBrowserFromUserAgent = (userAgent = '') => {
+    const ua = userAgent.toLowerCase();
+
+    if (!ua) return 'Unknown';
+    if (ua.includes('edg/')) return 'Microsoft Edge';
+    if (ua.includes('opr/') || ua.includes('opera')) return 'Opera';
+    if (ua.includes('chrome/') && !ua.includes('edg/')) return 'Chrome';
+    if (ua.includes('safari/') && !ua.includes('chrome/')) return 'Safari';
+    if (ua.includes('firefox/')) return 'Firefox';
+
+    return 'Unknown';
+};
 
 const AdminPanel = () => {
     const [users, setUsers] = useState([]);
@@ -9,6 +35,11 @@ const AdminPanel = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [editingUser, setEditingUser] = useState(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [userSessions, setUserSessions] = useState([]);
+    const [sessionsLoading, setSessionsLoading] = useState(false);
+    const [sessionsError, setSessionsError] = useState(null);
+    const [expandedSessions, setExpandedSessions] = useState({});
     const roleOptions = ['Admin', 'Operator', 'Viewer'];
 
     // Form states
@@ -25,13 +56,42 @@ const AdminPanel = () => {
 
     const fetchUsers = async () => {
         try {
-            const response = await api.get('/user');
+            const response = await api.get('/users');
             setUsers(response.data);
             setLoading(false);
         } catch (err) {
             setError('Failed to fetch users');
             setLoading(false);
         }
+    };
+
+    const handleUserRowClick = async (user) => {
+        setSelectedUser(user);
+        setSessionsLoading(true);
+        setSessionsError(null);
+        setExpandedSessions({});
+
+        try {
+            const response = await api.get(`/user/${user.id}/sessions`);
+            setUserSessions(response.data);
+        } catch (err) {
+            try {
+                const fallbackResponse = await api.get(`/users/${user.id}/sessions`);
+                setUserSessions(fallbackResponse.data);
+            } catch (fallbackErr) {
+                setSessionsError('Failed to fetch session history');
+                setUserSessions([]);
+            }
+        } finally {
+            setSessionsLoading(false);
+        }
+    };
+
+    const toggleSessionExpanded = (sessionId) => {
+        setExpandedSessions((prev) => ({
+            ...prev,
+            [sessionId]: !prev[sessionId],
+        }));
     };
 
     const handleEditClick = (user) => {
@@ -131,13 +191,18 @@ const AdminPanel = () => {
                                 <tr className="border-b border-white/5 bg-white/5">
                                     <th className="px-6 py-4 text-sm font-semibold text-gray-300">User</th>
                                     <th className="px-6 py-4 text-sm font-semibold text-gray-300">Role</th>
+                                    <th className="px-6 py-4 text-sm font-semibold text-gray-300">Last Sign On</th>
                                     <th className="px-6 py-4 text-sm font-semibold text-gray-300">ID</th>
                                     <th className="px-6 py-4 text-sm font-semibold text-gray-300 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
                                 {filteredUsers.map((user) => (
-                                    <tr key={user.id} className="hover:bg-white/5 transition-colors">
+                                    <tr
+                                        key={user.id}
+                                        className="hover:bg-white/5 transition-colors cursor-pointer"
+                                        onClick={() => handleUserRowClick(user)}
+                                    >
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
@@ -161,20 +226,29 @@ const AdminPanel = () => {
                                                 {user.role}
                                             </span>
                                         </td>
+                                        <td className="px-6 py-4 text-sm text-gray-300 whitespace-nowrap">
+                                            {formatDateTime(user.last_sign_on)}
+                                        </td>
                                         <td className="px-6 py-4 text-sm text-gray-500 font-mono">
                                             {user.id}
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
                                                 <button
-                                                    onClick={() => handleEditClick(user)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleEditClick(user);
+                                                    }}
                                                     className="p-2 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
                                                     title="Edit User"
                                                 >
                                                     <Edit2 className="w-4 h-4" />
                                                 </button>
                                                 <button
-                                                    onClick={() => setShowDeleteConfirm(user)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setShowDeleteConfirm(user);
+                                                    }}
                                                     className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
                                                     title="Delete User"
                                                 >
@@ -296,6 +370,104 @@ const AdminPanel = () => {
                         </div>
                     </div>
                 )}
+
+            {/* User Session History Modal */}
+            {selectedUser && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="bg-dark-900 border border-white/10 rounded-2xl w-full max-w-6xl p-6 shadow-2xl max-h-[90vh] overflow-hidden flex flex-col">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-xl font-bold text-white">User Session History</h2>
+                            <button
+                                onClick={() => setSelectedUser(null)}
+                                className="text-gray-400 hover:text-white transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div className="bg-dark-800 border border-white/10 rounded-lg p-4">
+                                <p className="text-xs uppercase tracking-wide text-gray-500 mb-1">Name</p>
+                                <p className="text-white font-medium">{selectedUser.name}</p>
+                            </div>
+                            <div className="bg-dark-800 border border-white/10 rounded-lg p-4">
+                                <p className="text-xs uppercase tracking-wide text-gray-500 mb-1">Email</p>
+                                <p className="text-white font-medium">{selectedUser.email}</p>
+                            </div>
+                            <div className="bg-dark-800 border border-white/10 rounded-lg p-4">
+                                <p className="text-xs uppercase tracking-wide text-gray-500 mb-1">Created At</p>
+                                <p className="text-white font-medium">{formatDateTime(selectedUser.created_at)}</p>
+                            </div>
+                            <div className="bg-dark-800 border border-white/10 rounded-lg p-4">
+                                <p className="text-xs uppercase tracking-wide text-gray-500 mb-1">Last Sign On</p>
+                                <p className="text-white font-medium">{formatDateTime(selectedUser.last_sign_on)}</p>
+                            </div>
+                        </div>
+
+                        <div className="flex-1 overflow-auto border border-white/10 rounded-lg">
+                            {sessionsLoading ? (
+                                <div className="h-40 flex items-center justify-center">
+                                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+                                </div>
+                            ) : sessionsError ? (
+                                <div className="p-4 text-red-400">{sessionsError}</div>
+                            ) : userSessions.length === 0 ? (
+                                <div className="p-4 text-gray-400">No session history available.</div>
+                            ) : (
+                                <table className="w-full text-left">
+                                    <thead>
+                                        <tr className="border-b border-white/10 bg-white/5 sticky top-0">
+                                            <th className="px-4 py-3 text-sm font-semibold text-gray-300">Date/Time</th>
+                                            <th className="px-4 py-3 text-sm font-semibold text-gray-300">IP Address</th>
+                                            <th className="px-4 py-3 text-sm font-semibold text-gray-300">Browser</th>
+                                            <th className="px-4 py-3 text-sm font-semibold text-gray-300">Details</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-white/10">
+                                        {userSessions.map((session) => (
+                                            <React.Fragment key={session.id}>
+                                                <tr className="hover:bg-white/5 transition-colors">
+                                                    <td className="px-4 py-3 text-sm text-gray-200 whitespace-nowrap">
+                                                        {formatDateTime(session.created_at)}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-sm text-gray-300 font-mono">
+                                                        {session.ip_address || 'unknown'}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-sm text-gray-300">
+                                                        {parseBrowserFromUserAgent(session.user_agent)}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-sm">
+                                                        <button
+                                                            onClick={() => toggleSessionExpanded(session.id)}
+                                                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-dark-700 text-gray-200 hover:text-white hover:bg-dark-600 transition-colors"
+                                                        >
+                                                            Raw JSON
+                                                            {expandedSessions[session.id] ? (
+                                                                <ChevronUp className="w-4 h-4" />
+                                                            ) : (
+                                                                <ChevronDown className="w-4 h-4" />
+                                                            )}
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                {expandedSessions[session.id] && (
+                                                    <tr className="bg-black/20">
+                                                        <td colSpan={4} className="px-4 py-3">
+                                                            <pre className="text-xs text-gray-200 overflow-x-auto whitespace-pre-wrap break-words bg-dark-800 border border-white/10 rounded-lg p-3 max-h-72 overflow-y-auto">
+                                                                {JSON.stringify(session.fingerprint_data, null, 2)}
+                                                            </pre>
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </React.Fragment>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
