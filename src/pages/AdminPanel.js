@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Shield, Trash2, Edit2, X, Search, ChevronDown, ChevronUp } from 'lucide-react';
 import api from '../services/api';
 
@@ -40,6 +40,7 @@ const AdminPanel = () => {
     const [sessionsLoading, setSessionsLoading] = useState(false);
     const [sessionsError, setSessionsError] = useState(null);
     const [expandedSessions, setExpandedSessions] = useState({});
+    const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
     const roleOptions = ['Admin', 'Operator', 'Viewer'];
 
     // Form states
@@ -143,10 +144,60 @@ const AdminPanel = () => {
         }
     };
 
-    const filteredUsers = users.filter(user =>
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const handleSort = (key) => {
+        setSortConfig((prev) => {
+            if (prev.key === key) {
+                return {
+                    key,
+                    direction: prev.direction === 'asc' ? 'desc' : 'asc',
+                };
+            }
+
+            return { key, direction: 'asc' };
+        });
+    };
+
+    const filteredUsers = useMemo(() => {
+        const normalizedSearch = searchTerm.toLowerCase();
+        return users.filter((user) =>
+            user.name.toLowerCase().includes(normalizedSearch) ||
+            user.email.toLowerCase().includes(normalizedSearch)
+        );
+    }, [users, searchTerm]);
+
+    const sortedUsers = useMemo(() => {
+        const sorted = [...filteredUsers].sort((a, b) => {
+            let comparison = 0;
+
+            if (sortConfig.key === 'last_sign_on') {
+                const dateA = a.last_sign_on ? new Date(a.last_sign_on).getTime() : 0;
+                const dateB = b.last_sign_on ? new Date(b.last_sign_on).getTime() : 0;
+                comparison = dateA - dateB;
+            } else if (sortConfig.key === 'id') {
+                const idA = Number(a.id) || 0;
+                const idB = Number(b.id) || 0;
+                comparison = idA - idB;
+            } else {
+                const valueA = String(a[sortConfig.key] ?? '').toLowerCase();
+                const valueB = String(b[sortConfig.key] ?? '').toLowerCase();
+                comparison = valueA.localeCompare(valueB, undefined, { numeric: true, sensitivity: 'base' });
+            }
+
+            return sortConfig.direction === 'asc' ? comparison : -comparison;
+        });
+
+        return sorted;
+    }, [filteredUsers, sortConfig]);
+
+    const renderSortIndicator = (key) => {
+        if (sortConfig.key !== key) {
+            return <ChevronDown className="w-4 h-4 text-gray-500" />;
+        }
+
+        return sortConfig.direction === 'asc'
+            ? <ChevronUp className="w-4 h-4 text-primary" />
+            : <ChevronDown className="w-4 h-4 text-primary" />;
+    };
 
     if (loading) return (
         <div className="min-h-screen flex items-center justify-center">
@@ -189,15 +240,51 @@ const AdminPanel = () => {
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="border-b border-white/5 bg-white/5">
-                                    <th className="px-6 py-4 text-sm font-semibold text-gray-300">User</th>
-                                    <th className="px-6 py-4 text-sm font-semibold text-gray-300">Role</th>
-                                    <th className="px-6 py-4 text-sm font-semibold text-gray-300">Last Sign On</th>
-                                    <th className="px-6 py-4 text-sm font-semibold text-gray-300">ID</th>
+                                    <th className="px-6 py-4 text-sm font-semibold text-gray-300">
+                                        <button
+                                            type="button"
+                                            onClick={() => handleSort('name')}
+                                            className="inline-flex items-center gap-2 hover:text-white transition-colors"
+                                        >
+                                            User
+                                            {renderSortIndicator('name')}
+                                        </button>
+                                    </th>
+                                    <th className="px-6 py-4 text-sm font-semibold text-gray-300">
+                                        <button
+                                            type="button"
+                                            onClick={() => handleSort('role')}
+                                            className="inline-flex items-center gap-2 hover:text-white transition-colors"
+                                        >
+                                            Role
+                                            {renderSortIndicator('role')}
+                                        </button>
+                                    </th>
+                                    <th className="px-6 py-4 text-sm font-semibold text-gray-300">
+                                        <button
+                                            type="button"
+                                            onClick={() => handleSort('last_sign_on')}
+                                            className="inline-flex items-center gap-2 hover:text-white transition-colors"
+                                        >
+                                            Last Sign On
+                                            {renderSortIndicator('last_sign_on')}
+                                        </button>
+                                    </th>
+                                    <th className="px-6 py-4 text-sm font-semibold text-gray-300">
+                                        <button
+                                            type="button"
+                                            onClick={() => handleSort('id')}
+                                            className="inline-flex items-center gap-2 hover:text-white transition-colors"
+                                        >
+                                            ID
+                                            {renderSortIndicator('id')}
+                                        </button>
+                                    </th>
                                     <th className="px-6 py-4 text-sm font-semibold text-gray-300 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
-                                {filteredUsers.map((user) => (
+                                {sortedUsers.map((user) => (
                                     <tr
                                         key={user.id}
                                         className="hover:bg-white/5 transition-colors cursor-pointer"
