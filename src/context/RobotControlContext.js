@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import api from '../services/api';
+import { useAuth } from './AuthContext';
 
 const RobotControlContext = createContext(null);
 
@@ -11,10 +12,23 @@ const toWsUrl = () => {
 };
 
 export const RobotControlProvider = ({ children, autoConnect = true }) => {
+  const { user } = useAuth();
   const wsRef = useRef(null);
   const [wsStatus, setWsStatus] = useState('disconnected');
   const [wsError, setWsError] = useState('');
   const [lastMessage, setLastMessage] = useState(null);
+  const [hasLock, setHasLock] = useState(false);
+  const hasLockRef = useRef(false);
+  const canManageDriveRef = useRef(false);
+  const canManageDrive = user?.role === 'Admin' || user?.role === 'Operator';
+
+  useEffect(() => {
+    hasLockRef.current = hasLock;
+  }, [hasLock]);
+
+  useEffect(() => {
+    canManageDriveRef.current = canManageDrive;
+  }, [canManageDrive]);
 
   const connectWs = useCallback(() => {
     const token = localStorage.getItem('token');
@@ -81,16 +95,39 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
   }, []);
 
   const acquireLock = useCallback(async () => {
+    if (!canManageDriveRef.current) {
+      return { status: 'error', message: 'Insufficient permissions to acquire lock' };
+    }
+
     const response = await api.post('/drive/lock');
+    if (response.data?.status !== 'error') {
+      setHasLock(true);
+    }
     return response.data;
   }, []);
 
   const releaseLock = useCallback(async () => {
+    if (!canManageDriveRef.current) {
+      return { status: 'skipped', message: 'Unlock skipped: role cannot hold drive lock' };
+    }
+
+    if (!hasLockRef.current) {
+      return { status: 'skipped', message: 'Unlock skipped: no active drive lock' };
+    }
+
     const response = await api.delete('/drive/lock');
+    if (response.data?.status !== 'error') {
+      setHasLock(false);
+    }
     return response.data;
   }, []);
 
   const releaseLockOnExit = useCallback(() => {
+    if (!canManageDriveRef.current || !hasLockRef.current) {
+      disconnectWs();
+      return;
+    }
+
     const token = localStorage.getItem('token');
     if (!token) {
       disconnectWs();
@@ -133,7 +170,7 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
       connectWs();
     }
     return () => {
-      if (localStorage.getItem('token')) {
+      if (localStorage.getItem('token') && canManageDriveRef.current && hasLockRef.current) {
         releaseLock().catch(() => {});
       }
       disconnectWs();
