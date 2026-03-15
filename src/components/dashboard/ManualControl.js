@@ -15,6 +15,7 @@ const ManualControl = () => {
   const lastSendRef = useRef(0);
   const targetPosRef = useRef({ x: 0, y: 0 });
   const displayPosRef = useRef({ x: 0, y: 0 });
+  const pressedKeysRef = useRef(new Set());
   const animationRef = useRef(null);
   const maxLinear = 1.0;
   const maxAngular = 2.0;
@@ -83,9 +84,31 @@ const ManualControl = () => {
     sendDriveCommand(linear, angular);
   }, [maxAngular, maxLinear, sendDriveCommand]);
 
-  const handleDragEnd = () => {
+  const handleDragEnd = useCallback(() => {
     sendDriveCommand(0, 0, true);
-  };
+  }, [sendDriveCommand]);
+
+  const getMaxRadius = useCallback(() => {
+    const bounds = constraintsRef.current?.getBoundingClientRect();
+    return bounds ? (bounds.width / 2) - 20 : 90;
+  }, []);
+
+  const setTargetFromKeyboard = useCallback((pressedKeys) => {
+    const horizontal = (pressedKeys.has('d') ? 1 : 0) + (pressedKeys.has('a') ? -1 : 0);
+    const vertical = (pressedKeys.has('s') ? 1 : 0) + (pressedKeys.has('w') ? -1 : 0);
+
+    if (horizontal === 0 && vertical === 0) {
+      targetPosRef.current = { x: 0, y: 0 };
+      handleDragEnd();
+      return;
+    }
+
+    const maxRadius = getMaxRadius();
+    targetPosRef.current = {
+      x: horizontal * maxRadius,
+      y: vertical * maxRadius,
+    };
+  }, [getMaxRadius, handleDragEnd]);
 
   useEffect(() => {
     const smoothing = 0.18;
@@ -142,6 +165,63 @@ const ManualControl = () => {
     targetPosRef.current = { x: 0, y: 0 };
     handleDragEnd();
   };
+
+  useEffect(() => {
+    const movementKeys = new Set(['w', 'a', 's', 'd']);
+
+    const isEditableElement = (target) => {
+      if (!target) return false;
+      if (target instanceof HTMLInputElement) return true;
+      if (target instanceof HTMLTextAreaElement) return true;
+      return target.isContentEditable;
+    };
+
+    const handleKeyDown = (event) => {
+      if (!canOperate) return;
+      const key = event.key.toLowerCase();
+      if (!movementKeys.has(key)) return;
+      if (isEditableElement(event.target)) return;
+
+      event.preventDefault();
+      pressedKeysRef.current.add(key);
+      setTargetFromKeyboard(pressedKeysRef.current);
+    };
+
+    const handleKeyUp = (event) => {
+      const key = event.key.toLowerCase();
+      if (!movementKeys.has(key)) return;
+
+      event.preventDefault();
+      pressedKeysRef.current.delete(key);
+      setTargetFromKeyboard(pressedKeysRef.current);
+    };
+
+    const resetKeyboardControl = () => {
+      if (pressedKeysRef.current.size === 0) return;
+      pressedKeysRef.current.clear();
+      targetPosRef.current = { x: 0, y: 0 };
+      handleDragEnd();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        resetKeyboardControl();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('blur', resetKeyboardControl);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('blur', resetKeyboardControl);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      resetKeyboardControl();
+    };
+  }, [canOperate, handleDragEnd, setTargetFromKeyboard]);
 
   const handleConnect = async () => {
     setLockError('');
@@ -300,7 +380,7 @@ const ManualControl = () => {
       </div>
 
       <p className="mt-4 md:mt-6 text-center text-[10px] md:text-xs text-gray-500 font-mono">
-        DRAG JOYSTICK TO MOVE
+        DRAG JOYSTICK OR USE WASD
       </p>
     </div>
   );
