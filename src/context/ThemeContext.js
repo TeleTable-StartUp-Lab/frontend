@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useLayoutEffect, useMemo, useState } from 'react';
 
 const ThemeContext = createContext(null);
 
@@ -15,12 +15,22 @@ const getInitialTheme = () => {
 export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState(getInitialTheme);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const root = document.documentElement;
+    root.classList.add('theme-switching');
     root.classList.toggle('theme-light', theme === 'light');
     root.classList.toggle('theme-dark', theme === 'dark');
     root.style.colorScheme = theme;
     window.localStorage.setItem('theme', theme);
+
+    const timeoutId = window.setTimeout(() => {
+      root.classList.remove('theme-switching');
+    }, 180);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      root.classList.remove('theme-switching');
+    };
   }, [theme]);
 
   const value = useMemo(() => ({

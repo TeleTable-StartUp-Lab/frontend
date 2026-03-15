@@ -7,6 +7,11 @@ html {
   overscroll-behavior-y: none;
 }
 
+:root {
+  --theme-transition-duration: 220ms;
+  --theme-transition-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 body {
   margin: 0;
   font-family: 'Outfit', sans-serif;
@@ -25,11 +30,25 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Global smooth transitions */
-* {
-  transition-property: background-color, border-color, color, fill, stroke;
-  transition-duration: 200ms;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+/* Keep theme transitions on surfaces, not all text, to reduce glyph flicker */
+body,
+#root,
+.glass-panel,
+.glass-input,
+.glass-card,
+.glass-error,
+nav {
+  transition-property: background-color, border-color, box-shadow;
+  transition-duration: var(--theme-transition-duration);
+  transition-timing-function: var(--theme-transition-ease);
+}
+
+/* Disable transitions briefly while swapping theme classes */
+.theme-switching *,
+.theme-switching *::before,
+.theme-switching *::after {
+  transition: none !important;
+  animation: none !important;
 }
 
 /* Prevent layout shift */
@@ -108,80 +127,100 @@ code {
 /* Light theme overrides */
 .theme-light body,
 .theme-light #root {
-  background-color: #f8fafc;
-  color: #0f172a;
+  background-color: #e7edf6;
+  color: #0b1220;
+}
+
+.theme-light body {
+  background-image:
+    radial-gradient(1200px 520px at 10% -10%, rgba(56, 189, 248, 0.10), transparent 60%),
+    radial-gradient(900px 460px at 90% 0%, rgba(99, 102, 241, 0.08), transparent 60%),
+    linear-gradient(180deg, #edf3fb 0%, #e6edf7 48%, #dfe8f3 100%);
+  background-attachment: fixed;
+}
+
+.theme-light #root {
+  background-color: transparent;
 }
 
 .theme-light .bg-tech-gradient {
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  background: linear-gradient(135deg, #eef4fc 0%, #e4ecf7 52%, #dbe5f1 100%);
 }
 
 .theme-light .text-white {
-  color: #0f172a;
+  color: #0b1220;
 }
 
 .theme-light .hover\:text-white:hover {
-  color: #0f172a;
+  color: #0b1220;
 }
 
 .theme-light .text-gray-200 {
-  color: #334155;
+  color: #1e293b;
 }
 
 .theme-light .text-gray-300 {
-  color: #334155;
+  color: #111827;
 }
 
 .theme-light .text-gray-400 {
-  color: #475569;
+  color: #1f2937;
 }
 
 .theme-light .text-gray-500 {
-  color: #64748b;
+  color: #334155;
 }
 
 .theme-light .text-gray-600 {
-  color: #64748b;
+  color: #475569;
+}
+
+.theme-light .text-primary {
+  color: #0e7490;
+}
+
+.theme-light .hover\:text-primary:hover {
+  color: #0f766e;
 }
 
 .theme-light .bg-dark-900 {
-  background-color: #f8fafc;
+  background-color: #eaf1fa;
 }
 
 .theme-light .bg-dark-800 {
-  background-color: #f1f5f9;
+  background-color: #e2ebf7;
 }
 
 .theme-light .bg-dark-700 {
-  background-color: #e2e8f0;
+  background-color: #d7e1ef;
 }
 
 .theme-light .bg-dark-800\/50 {
-  background-color: rgba(241, 245, 249, 0.7);
+  background-color: rgba(226, 235, 247, 0.82);
 }
 
 .theme-light .focus\:bg-dark-800:focus {
-  background-color: #f1f5f9;
+  background-color: #e2ebf7;
 }
 
 .theme-light .hover\:bg-dark-800\/80:hover {
-  background-color: rgba(241, 245, 249, 0.9);
+  background-color: rgba(226, 235, 247, 0.92);
 }
 
 .theme-light .bg-dark-900\/80 {
-  background-color: rgba(248, 250, 252, 0.85);
+  background-color: rgba(234, 241, 250, 0.88);
 }
 
 .theme-light .bg-dark-900\/95 {
-  background-color: rgba(248, 250, 252, 0.95);
+  background-color: rgba(234, 241, 250, 0.95);
 }
 
 .theme-light .bg-dark-900\/50 {
-  background-color: rgba(248, 250, 252, 0.6);
+  background-color: rgba(234, 241, 250, 0.68);
 }
 
 .theme-light .bg-white\/5 {
-  background-color: rgba(15, 23, 42, 0.04);
+  background-color: rgba(15, 23, 42, 0.05);
 }
 
 .theme-light .bg-white\/10 {
@@ -189,28 +228,28 @@ code {
 }
 
 .theme-light .border-white\/5 {
-  border-color: rgba(15, 23, 42, 0.08);
+  border-color: rgba(15, 23, 42, 0.10);
 }
 
 .theme-light .border-white\/10 {
-  border-color: rgba(15, 23, 42, 0.12);
+  border-color: rgba(15, 23, 42, 0.15);
 }
 
 .theme-light .border-white\/20 {
-  border-color: rgba(15, 23, 42, 0.2);
+  border-color: rgba(15, 23, 42, 0.20);
 }
 
 .theme-light .glass-panel {
-  background: rgba(255, 255, 255, 0.75);
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  box-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.08);
+  background: rgba(240, 246, 253, 0.82);
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  box-shadow: 0 10px 26px 0 rgba(15, 23, 42, 0.11);
 }
 
 .theme-light .glass-input {
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(236, 243, 251, 0.86);
 }
 
 .theme-light .glass-card {
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(237, 244, 252, 0.85);
+  border: 1px solid rgba(15, 23, 42, 0.12);
 }
