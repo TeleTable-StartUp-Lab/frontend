@@ -79,7 +79,7 @@ const Navbar = () => {
                                         alt="TeleTable"
                                         className="w-7 md:w-8 h-7 md:h-8"
                                         loading="eager"
-                                        fetchpriority="high"
+                                        fetchPriority="high"
                                     />
                                 </div>
                                 <div className="flex flex-col">
