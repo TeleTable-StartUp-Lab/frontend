@@ -161,7 +161,8 @@ const AdminPanel = () => {
         const normalizedSearch = searchTerm.toLowerCase();
         return users.filter((user) =>
             user.name.toLowerCase().includes(normalizedSearch) ||
-            user.email.toLowerCase().includes(normalizedSearch)
+            user.email.toLowerCase().includes(normalizedSearch) ||
+            String(user.id ?? '').toLowerCase().includes(normalizedSearch)
         );
     }, [users, searchTerm]);
 
@@ -174,9 +175,9 @@ const AdminPanel = () => {
                 const dateB = b.last_sign_on ? new Date(b.last_sign_on).getTime() : 0;
                 comparison = dateA - dateB;
             } else if (sortConfig.key === 'id') {
-                const idA = Number(a.id) || 0;
-                const idB = Number(b.id) || 0;
-                comparison = idA - idB;
+                const idA = String(a.id ?? '').toLowerCase();
+                const idB = String(b.id ?? '').toLowerCase();
+                comparison = idA.localeCompare(idB, undefined, { numeric: true, sensitivity: 'base' });
             } else {
                 const valueA = String(a[sortConfig.key] ?? '').toLowerCase();
                 const valueB = String(b[sortConfig.key] ?? '').toLowerCase();
