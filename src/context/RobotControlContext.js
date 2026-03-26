@@ -14,9 +14,25 @@ const toWsUrl = () => {
 export const RobotControlProvider = ({ children, autoConnect = true }) => {
   const { user } = useAuth();
   const wsRef = useRef(null);
+  const eventsWsRef = useRef(null);
   const [wsStatus, setWsStatus] = useState('disconnected');
   const [wsError, setWsError] = useState('');
+  const [eventsWsStatus, setEventsWsStatus] = useState('disconnected');
+  const [eventsWsError, setEventsWsError] = useState('');
   const [lastMessage, setLastMessage] = useState(null);
+  const [statusData, setStatusData] = useState({
+    systemHealth: 'UNKNOWN',
+    batteryLevel: 0,
+    driveMode: 'UNKNOWN',
+    cargoStatus: 'UNKNOWN',
+    position: 'UNKNOWN',
+    lastRoute: null,
+    manualLockHolderName: null,
+    robotConnected: false,
+    nodes: [],
+  });
+  const [notifications, setNotifications] = useState([]);
+  const [toasts, setToasts] = useState([]);
   const [hasLock, setHasLock] = useState(false);
   const hasLockRef = useRef(false);
   const canManageDriveRef = useRef(false);
@@ -29,6 +45,33 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
   useEffect(() => {
     canManageDriveRef.current = canManageDrive;
   }, [canManageDrive]);
+
+  const normalizeStatusPayload = useCallback((data = {}) => ({
+    systemHealth: data.systemHealth ?? data.system_health ?? 'UNKNOWN',
+    batteryLevel: data.batteryLevel ?? data.battery_level ?? 0,
+    driveMode: data.driveMode ?? data.drive_mode ?? 'UNKNOWN',
+    cargoStatus: data.cargoStatus ?? data.cargo_status ?? 'UNKNOWN',
+    position: data.position ?? 'UNKNOWN',
+    lastRoute: data.lastRoute ?? data.last_route ?? null,
+    manualLockHolderName: data.manualLockHolderName ?? data.manual_lock_holder_name ?? null,
+    robotConnected: data.robotConnected ?? data.robot_connected ?? false,
+    nodes: data.nodes ?? [],
+  }), []);
+
+  const normalizeNotification = useCallback((data = {}) => ({
+    id: data.id ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    priority: (data.priority ?? 'INFO').toUpperCase(),
+    message: data.message ?? '',
+    receivedAt: data.receivedAt ?? data.received_at ?? new Date().toISOString(),
+  }), []);
+
+  const dismissToast = useCallback((toastId) => {
+    setToasts((prev) => prev.filter((toast) => toast.toastId !== toastId));
+  }, []);
+
+  const clearNotifications = useCallback(() => {
+    setNotifications([]);
+  }, []);
 
   const connectWs = useCallback(() => {
     const token = localStorage.getItem('token');
@@ -70,14 +113,125 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
     };
 
     socket.onmessage = (msg) => {
-      setLastMessage(msg.data);
+      try {
+        const parsed = JSON.parse(msg.data);
+        if (parsed?.event === 'status_update' && parsed?.data) {
+          setStatusData(normalizeStatusPayload(parsed.data));
+          return;
+        }
+
+        if (parsed?.event === 'robot_notification' && parsed?.data) {
+          const notification = normalizeNotification(parsed.data);
+          setLastMessage(`[${notification.priority}] ${notification.message}`);
+          setNotifications((prev) => [
+            notification,
+            ...prev.filter((item) => item.id !== notification.id),
+          ].slice(0, 200));
+
+          const toastId = `${notification.id}-${Date.now()}`;
+          const toast = {
+            ...notification,
+            toastId,
+          };
+          setToasts((prev) => [toast, ...prev].slice(0, 5));
+          window.setTimeout(() => {
+            dismissToast(toastId);
+          }, 5000);
+          return;
+        }
+
+        setLastMessage(msg.data);
+      } catch {
+        setLastMessage(msg.data);
+      }
     };
-  }, []);
+  }, [dismissToast, normalizeNotification, normalizeStatusPayload]);
+
+  const connectEventsWs = useCallback(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setEventsWsError('Not logged in');
+      setEventsWsStatus('error');
+      return;
+    }
+
+    const url = `${toWsUrl()}/ws/robot/events?token=${token}`;
+
+    if (eventsWsRef.current) {
+      eventsWsRef.current.close();
+      eventsWsRef.current = null;
+    }
+
+    setEventsWsStatus('connecting');
+    setEventsWsError('');
+    const socket = new WebSocket(url);
+    eventsWsRef.current = socket;
+
+    socket.onopen = () => {
+      setEventsWsStatus('connected');
+      setEventsWsError('');
+    };
+
+    socket.onclose = () => {
+      setEventsWsStatus('disconnected');
+      if (!navigator.onLine) {
+        setEventsWsError('Offline');
+      } else {
+        setEventsWsError('WebSocket disconnected');
+      }
+    };
+
+    socket.onerror = () => {
+      setEventsWsStatus('error');
+      setEventsWsError('WebSocket error');
+    };
+
+    socket.onmessage = (msg) => {
+      try {
+        const parsed = JSON.parse(msg.data);
+        if (parsed?.event === 'status_update' && parsed?.data) {
+          setStatusData(normalizeStatusPayload(parsed.data));
+          return;
+        }
+
+        if (parsed?.event === 'robot_notification' && parsed?.data) {
+          const notification = normalizeNotification(parsed.data);
+          setLastMessage(`[${notification.priority}] ${notification.message}`);
+          setNotifications((prev) => [
+            notification,
+            ...prev.filter((item) => item.id !== notification.id),
+          ].slice(0, 200));
+
+          const toastId = `${notification.id}-${Date.now()}`;
+          const toast = {
+            ...notification,
+            toastId,
+          };
+          setToasts((prev) => [toast, ...prev].slice(0, 5));
+          window.setTimeout(() => {
+            dismissToast(toastId);
+          }, 5000);
+          return;
+        }
+
+        setLastMessage(msg.data);
+      } catch {
+        setLastMessage(msg.data);
+      }
+    };
+  }, [dismissToast, normalizeNotification, normalizeStatusPayload]);
 
   const disconnectWs = useCallback(() => {
     if (wsRef.current) {
       wsRef.current.close();
       wsRef.current = null;
+    }
+  }, []);
+
+  const disconnectEventsWs = useCallback(() => {
+    if (eventsWsRef.current) {
+      eventsWsRef.current.close();
+      eventsWsRef.current = null;
     }
   }, []);
 
@@ -87,11 +241,6 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
     }
     wsRef.current.send(JSON.stringify(command));
     return true;
-  }, []);
-
-  const getStatus = useCallback(async () => {
-    const response = await api.get('/status');
-    return response.data;
   }, []);
 
   const acquireLock = useCallback(async () => {
@@ -165,17 +314,34 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
     return response.data;
   }, []);
 
+  const loadNotificationHistory = useCallback(async () => {
+    const response = await api.get('/robot/notifications?limit=100');
+    const history = Array.isArray(response.data)
+      ? response.data.map(normalizeNotification)
+      : [];
+    setNotifications(history);
+  }, [normalizeNotification]);
+
   useEffect(() => {
     if (autoConnect && localStorage.getItem('token')) {
-      connectWs();
+      connectEventsWs();
     }
     return () => {
       if (localStorage.getItem('token') && canManageDriveRef.current && hasLockRef.current) {
         releaseLock().catch(() => {});
       }
       disconnectWs();
+      disconnectEventsWs();
     };
-  }, [autoConnect, connectWs, disconnectWs, releaseLock]);
+  }, [autoConnect, connectEventsWs, disconnectEventsWs, disconnectWs, releaseLock]);
+
+  useEffect(() => {
+    if (!localStorage.getItem('token')) {
+      return;
+    }
+
+    loadNotificationHistory().catch(() => {});
+  }, [loadNotificationHistory]);
 
   useEffect(() => {
     const handlePageLeave = () => {
@@ -199,11 +365,19 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
         wsRef.current.close();
         wsRef.current = null;
       }
+      setEventsWsStatus('error');
+      setEventsWsError('Offline');
+      if (eventsWsRef.current) {
+        eventsWsRef.current.close();
+        eventsWsRef.current = null;
+      }
     };
 
     const handleOnline = () => {
       setWsError('');
       setWsStatus((prev) => (prev === 'error' ? 'disconnected' : prev));
+      setEventsWsError('');
+      setEventsWsStatus((prev) => (prev === 'error' ? 'disconnected' : prev));
     };
 
     window.addEventListener('offline', handleOffline);
@@ -219,11 +393,20 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
     () => ({
       wsStatus,
       wsError,
+      eventsWsStatus,
+      eventsWsError,
       lastMessage,
+      statusData,
+      nodes: statusData.nodes,
+      notifications,
+      toasts,
+      dismissToast,
+      clearNotifications,
       connectWs,
+      connectEventsWs,
       disconnectWs,
+      disconnectEventsWs,
       sendCommand,
-      getStatus,
       acquireLock,
       releaseLock,
       getNodes,
@@ -233,11 +416,19 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
     [
       wsStatus,
       wsError,
+      eventsWsStatus,
+      eventsWsError,
       lastMessage,
+      statusData,
+      notifications,
+      toasts,
+      dismissToast,
+      clearNotifications,
       connectWs,
+      connectEventsWs,
       disconnectWs,
+      disconnectEventsWs,
       sendCommand,
-      getStatus,
       acquireLock,
       releaseLock,
       getNodes,

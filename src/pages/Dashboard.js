@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { ListOrdered, SlidersHorizontal, X } from 'lucide-react';
 import QueueControl from './QueueControl';
 import PeripheralControl from '../components/dashboard/PeripheralControl';
+import RobotNotificationsPanel from '../components/dashboard/RobotNotificationsPanel';
 
 const Dashboard = () => {
     const { user } = useAuth();
@@ -22,9 +23,12 @@ const Dashboard = () => {
 
     if (isViewer) {
         return (
-            <RobotControlProvider autoConnect={false}>
+            <RobotControlProvider autoConnect>
                 <div className="w-full">
                     <div className="w-full">
+                        <div className="flex justify-end mb-3">
+                            <RobotNotificationsPanel />
+                        </div>
                         <Telemetry />
                     </div>
                 </div>
@@ -78,13 +82,14 @@ const Dashboard = () => {
         : null;
 
     return (
-        <RobotControlProvider autoConnect={false}>
+        <RobotControlProvider autoConnect>
             <div className="space-y-4 md:space-y-8">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
                     Control <span className="text-primary">Dashboard</span>
                 </h1>
                 <div className="flex items-center justify-between md:justify-end gap-2 md:gap-3">
+                    <RobotNotificationsPanel />
                     {isAdmin && (
                         <>
                             <button

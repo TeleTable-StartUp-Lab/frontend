@@ -1,48 +1,9 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Activity, Zap, Navigation, RefreshCcw } from 'lucide-react';
 import { useRobotControl } from '../../context/RobotControlContext';
 
 const Telemetry = () => {
-  const { getStatus, wsStatus } = useRobotControl();
-  const [loading, setLoading] = useState(false);
-  const [statusData, setStatusData] = useState({
-    systemHealth: 'UNKNOWN',
-    batteryLevel: 0,
-    driveMode: 'UNKNOWN',
-    cargoStatus: 'UNKNOWN',
-    position: 'UNKNOWN',
-    lastRoute: null,
-    manualLockHolderName: null,
-  });
-
-  const fetchStatus = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await getStatus();
-      setStatusData({
-        systemHealth: data.systemHealth ?? data.system_health ?? 'UNKNOWN',
-        batteryLevel: data.batteryLevel ?? data.battery_level ?? 0,
-        driveMode: data.driveMode ?? data.drive_mode ?? 'UNKNOWN',
-        cargoStatus: data.cargoStatus ?? data.cargo_status ?? 'UNKNOWN',
-        position: data.position ?? 'UNKNOWN',
-        lastRoute: data.lastRoute ?? data.last_route ?? null,
-        manualLockHolderName: data.manualLockHolderName ?? data.manual_lock_holder_name ?? null,
-      });
-    } catch (e) {
-      // ignore transient errors
-    } finally {
-      setLoading(false);
-    }
-  }, [getStatus]);
-
-  useEffect(() => {
-    fetchStatus();
-  }, [fetchStatus]);
-
-  useEffect(() => {
-    const id = setInterval(fetchStatus, 3000);
-    return () => clearInterval(id);
-  }, [fetchStatus]);
+  const { statusData, eventsWsStatus } = useRobotControl();
 
   const getStatusColor = (s) => {
     switch (s) {
@@ -78,8 +39,8 @@ const Telemetry = () => {
             {statusData.systemHealth}
           </div>
           <div className="mt-2 flex items-center gap-2 text-xs text-gray-400">
-            <span className={`w-2 h-2 rounded-full ${wsStatus === 'connected' ? 'bg-success animate-pulse' : 'bg-warning'}`}></span>
-            WS: {wsStatus.toUpperCase()}
+            <span className={`w-2 h-2 rounded-full ${eventsWsStatus === 'connected' ? 'bg-success animate-pulse' : 'bg-warning'}`}></span>
+            WS: {eventsWsStatus.toUpperCase()}
           </div>
         </div>
 
@@ -132,8 +93,8 @@ const Telemetry = () => {
 
         <div className="flex items-center justify-end text-xs text-gray-400">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-dark-800 border border-white/10">
-            <RefreshCcw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
-            Auto refresh (3s)
+            <RefreshCcw className={`h-3 w-3 ${eventsWsStatus === 'connected' ? 'animate-spin' : ''}`} />
+            Live websocket updates
           </div>
         </div>
       </div>

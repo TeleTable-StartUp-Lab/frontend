@@ -1,38 +1,17 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { MapPin, Send, CheckCircle, Navigation, XCircle } from 'lucide-react';
 import { useRobotControl } from '../../context/RobotControlContext';
 import { useAuth } from '../../context/AuthContext';
 
 const AutoControl = () => {
-  const { getNodes, selectRoute, sendCommand } = useRobotControl();
+  const { nodes, selectRoute, sendCommand } = useRobotControl();
   const { user } = useAuth();
   const isAdmin = user?.role === 'Admin';
   const canOperate = user?.role === 'Admin' || user?.role === 'Operator';
   const [start, setStart] = useState('');
   const [destination, setDestination] = useState('');
   const [status, setStatus] = useState('');
-  const [nodes, setNodes] = useState([]);
   const [error, setError] = useState('');
-
-  const fetchNodes = useCallback(async () => {
-    setError('');
-    try {
-      const data = await getNodes();
-      setNodes(data.nodes || []);
-    } catch (e) {
-      setError('Failed to fetch nodes');
-    } finally {
-      // no-op
-    }
-  }, [getNodes]);
-
-  useEffect(() => {
-    fetchNodes();
-    const intervalId = setInterval(fetchNodes, 600000);
-    return () => clearInterval(intervalId);
-  }, [fetchNodes]);
-
-  const locations = useMemo(() => nodes, [nodes]);
 
   const handleSelectRoute = async () => {
     if (!start || !destination) return;
@@ -97,7 +76,7 @@ const AutoControl = () => {
                 className="block w-full pl-10 pr-10 py-2.5 border border-white/10 rounded-lg bg-dark-800/50 text-gray-300 focus:outline-none focus:bg-dark-800 focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm transition-all appearance-none cursor-pointer hover:bg-dark-800/80"
               >
                 <option value="">Select Start</option>
-                {locations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+                {nodes.map(loc => <option key={loc} value={loc}>{loc}</option>)}
               </select>
             </div>
           </div>
@@ -114,7 +93,7 @@ const AutoControl = () => {
                 className="block w-full pl-10 pr-10 py-2.5 border border-white/10 rounded-lg bg-dark-800/50 text-gray-300 focus:outline-none focus:bg-dark-800 focus:border-secondary focus:ring-1 focus:ring-secondary sm:text-sm transition-all appearance-none cursor-pointer hover:bg-dark-800/80"
               >
                 <option value="">Select Destination</option>
-                {locations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+                {nodes.map(loc => <option key={loc} value={loc}>{loc}</option>)}
               </select>
             </div>
           </div>
