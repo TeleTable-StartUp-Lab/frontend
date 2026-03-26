@@ -13,10 +13,7 @@ const ManualControl = () => {
   const [isDragging, setIsDragging] = useState(false);
   const constraintsRef = useRef(null);
   const lastSendRef = useRef(0);
-  const targetPosRef = useRef({ x: 0, y: 0 });
-  const displayPosRef = useRef({ x: 0, y: 0 });
   const pressedKeysRef = useRef(new Set());
-  const animationRef = useRef(null);
   const maxLinear = 1.0;
   const maxAngular = 2.0;
 
@@ -54,7 +51,7 @@ const ManualControl = () => {
 
   const sendDriveCommand = useCallback((linear, angular, force = false) => {
     const now = Date.now();
-    if (!force && now - lastSendRef.current < 80) return;
+    if (!force && now - lastSendRef.current < 25) return;
     lastSendRef.current = now;
     sendCommand({
       command: 'DRIVE_COMMAND',
@@ -85,6 +82,7 @@ const ManualControl = () => {
   }, [maxAngular, maxLinear, sendDriveCommand]);
 
   const handleDragEnd = useCallback(() => {
+    setDragPos({ x: 0, y: 0 });
     sendDriveCommand(0, 0, true);
   }, [sendDriveCommand]);
 
@@ -93,50 +91,23 @@ const ManualControl = () => {
     return bounds ? (bounds.width / 2) - 20 : 90;
   }, []);
 
+  const applyControlOffset = useCallback((x, y) => {
+    setDragPos({ x, y });
+    updateFromOffset(x, y);
+  }, [updateFromOffset]);
+
   const setTargetFromKeyboard = useCallback((pressedKeys) => {
     const horizontal = (pressedKeys.has('d') ? 1 : 0) + (pressedKeys.has('a') ? -1 : 0);
     const vertical = (pressedKeys.has('s') ? 1 : 0) + (pressedKeys.has('w') ? -1 : 0);
 
     if (horizontal === 0 && vertical === 0) {
-      targetPosRef.current = { x: 0, y: 0 };
       handleDragEnd();
       return;
     }
 
     const maxRadius = getMaxRadius();
-    targetPosRef.current = {
-      x: horizontal * maxRadius,
-      y: vertical * maxRadius,
-    };
-  }, [getMaxRadius, handleDragEnd]);
-
-  useEffect(() => {
-    const smoothing = 0.18;
-    const tick = () => {
-      const target = targetPosRef.current;
-      const current = displayPosRef.current;
-      const nextX = current.x + (target.x - current.x) * smoothing;
-      const nextY = current.y + (target.y - current.y) * smoothing;
-      const isClose = Math.abs(nextX - target.x) < 0.5 && Math.abs(nextY - target.y) < 0.5;
-      const resolvedX = isClose ? target.x : nextX;
-      const resolvedY = isClose ? target.y : nextY;
-
-      if (resolvedX !== current.x || resolvedY !== current.y) {
-        displayPosRef.current = { x: resolvedX, y: resolvedY };
-        setDragPos({ x: resolvedX, y: resolvedY });
-        updateFromOffset(resolvedX, resolvedY);
-      }
-
-      animationRef.current = requestAnimationFrame(tick);
-    };
-
-    animationRef.current = requestAnimationFrame(tick);
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, [updateFromOffset]);
+    applyControlOffset(horizontal * maxRadius, vertical * maxRadius);
+  }, [applyControlOffset, getMaxRadius, handleDragEnd]);
 
   const handlePointerDown = (event) => {
     event.currentTarget.setPointerCapture(event.pointerId);
@@ -156,13 +127,12 @@ const ManualControl = () => {
     const clampedX = Math.max(-maxRadius, Math.min(maxRadius, rawX));
     const clampedY = Math.max(-maxRadius, Math.min(maxRadius, rawY));
 
-    targetPosRef.current = { x: clampedX, y: clampedY };
+    applyControlOffset(clampedX, clampedY);
   };
 
   const handlePointerUp = (event) => {
     event.currentTarget.releasePointerCapture(event.pointerId);
     setIsDragging(false);
-    targetPosRef.current = { x: 0, y: 0 };
     handleDragEnd();
   };
 
@@ -199,7 +169,6 @@ const ManualControl = () => {
     const resetKeyboardControl = () => {
       if (pressedKeysRef.current.size === 0) return;
       pressedKeysRef.current.clear();
-      targetPosRef.current = { x: 0, y: 0 };
       handleDragEnd();
     };
 
@@ -360,14 +329,12 @@ const ManualControl = () => {
               if (isDragging) {
                 event.currentTarget.releasePointerCapture(event.pointerId);
                 setIsDragging(false);
-                targetPosRef.current = { x: 0, y: 0 };
                 handleDragEnd();
               }
             }}
             onPointerLeave={() => {
               if (isDragging) {
                 setIsDragging(false);
-                targetPosRef.current = { x: 0, y: 0 };
                 handleDragEnd();
               }
             }}
