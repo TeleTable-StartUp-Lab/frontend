@@ -20,7 +20,7 @@ Dokumentation der geplanten Kommunikation zwischen Frontend und Backend, bevor d
 
 ## Auth-Flow
 1. Benutzer meldet sich an (Login-Form)
-2. Frontend sendet Credentials an /auth/login
+2. Frontend sendet Credentials an /login
 3. Backend liefert Token + User-Info
 4. Token wird gespeichert (Memory/Storage)
 5. Token wird bei jedem Request im Header mitgesendet
@@ -32,9 +32,9 @@ Dokumentation der geplanten Kommunikation zwischen Frontend und Backend, bevor d
 ## Geplante Endpunkte (hohes Niveau)
 
 ### Auth
-- POST /auth/login
-- POST /auth/register
-- GET /auth/me
+- POST /login
+- POST /register
+- GET /me
 
 ### Diary
 - GET /diary
@@ -44,15 +44,23 @@ Dokumentation der geplanten Kommunikation zwischen Frontend und Backend, bevor d
 - GET /diary/public
 
 ### Robot/Queue
-- GET /robot/status
-- POST /robot/action
-- GET /queue
-- POST /queue
-- DELETE /queue/:id
+- GET /nodes
+- GET /routes
+- POST /routes
+- DELETE /routes/:id
+- POST /routes/select
+- POST /drive/lock
+- DELETE /drive/lock
+- GET /robot/check
+- GET /robot/notifications
+- WS /ws/robot/events?token=<jwt> (status_update + robot_notification)
+- WS /ws/drive/manual?token=<jwt> (manual command input)
 
 ### Admin
-- GET /admin/users
-- PUT /admin/users/:id/role
+- GET /users
+- GET /user?id=<uuid>
+- POST /user
+- DELETE /user
 
 ## Datenmodelle
 
@@ -77,12 +85,34 @@ Dokumentation der geplanten Kommunikation zwischen Frontend und Backend, bevor d
 }
 ```
 
-### RobotStatus
+### RobotStatusUpdateEvent
 ```json
 {
-  "state": "idle|running|error",
-  "queueLength": 0,
-  "lastUpdate": "ISO-8601"
+  "event": "status_update",
+  "data": {
+    "systemHealth": "OK|UNKNOWN",
+    "batteryLevel": 0,
+    "driveMode": "IDLE|UNKNOWN",
+    "cargoStatus": "EMPTY|UNKNOWN",
+    "position": "Home|UNKNOWN",
+    "lastRoute": { "start_node": "Home", "end_node": "Kitchen" },
+    "manualLockHolderName": null,
+    "robotConnected": true,
+    "nodes": ["Home", "Kitchen"]
+  }
+}
+```
+
+### RobotNotificationEvent
+```json
+{
+  "event": "robot_notification",
+  "data": {
+    "id": "uuid",
+    "priority": "INFO|WARN|ERROR",
+    "message": "Low battery: 18%",
+    "receivedAt": "ISO-8601"
+  }
 }
 ```
 
@@ -99,9 +129,9 @@ Dokumentation der geplanten Kommunikation zwischen Frontend und Backend, bevor d
 - Bei 401: Logout & Redirect zu Login
 
 ## Caching & Revalidation
-- Kurze Polling-Intervalle für Robot-Status
+- Robot-Status via WebSocket-Events (`status_update`) statt Polling
+- Notification-History über `GET /robot/notifications`
 - Keine aggressive Cache-Strategie
-- Optional: ETag/If-None-Match
 
 ## Sicherheitsaspekte
 - HTTPS-only
@@ -118,11 +148,11 @@ sequenceDiagram
   participant BE as Backend
 
   U->>FE: Login-Form
-  FE->>BE: POST /auth/login
+  FE->>BE: POST /login
   BE-->>FE: 200 Token + User
   FE->>FE: Store Token
-  FE->>BE: GET /robot/status (Auth)
-  BE-->>FE: 200 Status
+  FE->>BE: WS /ws/robot/events?token=<jwt>
+  BE-->>FE: status_update / robot_notification
   FE-->>U: Dashboard aktualisiert
 ```
 
