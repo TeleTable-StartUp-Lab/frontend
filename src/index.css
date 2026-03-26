@@ -195,6 +195,10 @@ code {
   background-color: #d7e1ef;
 }
 
+.theme-light .bg-dark-600 {
+  background-color: #cfdbea;
+}
+
 .theme-light .bg-dark-800\/50 {
   background-color: rgba(226, 235, 247, 0.82);
 }
@@ -205,6 +209,18 @@ code {
 
 .theme-light .hover\:bg-dark-800\/80:hover {
   background-color: rgba(226, 235, 247, 0.92);
+}
+
+.theme-light .hover\:bg-dark-700:hover {
+  background-color: #d7e1ef;
+}
+
+.theme-light .hover\:bg-dark-600:hover {
+  background-color: #cfdbea;
+}
+
+.theme-light .bg-dark-800\/60 {
+  background-color: rgba(226, 235, 247, 0.86);
 }
 
 .theme-light .bg-dark-900\/80 {
