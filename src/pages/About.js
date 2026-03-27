@@ -97,6 +97,44 @@ const About = () => {
                 ))}
             </div>
 
+            {/* Sponsor Section */}
+            <div className="max-w-4xl mx-auto">
+                <div className="glass-panel rounded-2xl p-6 md:p-8 border border-white/10">
+                    <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-8">
+                        <div className="w-full md:w-52 shrink-0">
+                            <a
+                                href="https://www.abuscom.com/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block"
+                                aria-label="Visit ABUSCOM website"
+                            >
+                                <div className="h-24 md:h-28 rounded-xl border border-dashed border-primary/40 bg-dark-800/70 flex items-center justify-center text-primary font-semibold tracking-wider hover:border-primary/70 transition-colors">
+                                    LOGO PLACEHOLDER
+                                </div>
+                            </a>
+                        </div>
+
+                        <div className="space-y-3">
+                            <p className="text-xs uppercase tracking-[0.18em] text-primary">Sponsor</p>
+                            <h2 className="text-2xl font-bold text-white">ABUSCOM</h2>
+                            <p className="text-sm md:text-base text-gray-300 leading-relaxed">
+                                We are proud to have ABUSCOM as a sponsor supporting our journey.
+                                Their partnership helps us push TeleTable forward and turn ambitious ideas into real-world innovation.
+                            </p>
+                            <a
+                                href="https://www.abuscom.com/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center text-sm text-primary hover:text-white transition-colors"
+                            >
+                                Visit sponsor website
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {/* GitHub Link Section */}
             <div className="flex justify-center pt-12">
                 <a
