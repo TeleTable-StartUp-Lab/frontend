@@ -502,13 +502,13 @@ const AdminPanel = () => {
                             ) : userSessions.length === 0 ? (
                                 <div className="p-4 text-gray-400">No session history available.</div>
                             ) : (
-                                <table className="w-full text-left">
-                                    <thead>
-                                        <tr className="border-b border-white/10 bg-white/5 sticky top-0">
-                                            <th className="px-4 py-3 text-sm font-semibold text-gray-300">Date/Time</th>
-                                            <th className="px-4 py-3 text-sm font-semibold text-gray-300">IP Address</th>
-                                            <th className="px-4 py-3 text-sm font-semibold text-gray-300">Browser</th>
-                                            <th className="px-4 py-3 text-sm font-semibold text-gray-300">Details</th>
+                                <table className="w-full table-fixed text-left">
+                                    <thead className="relative z-20">
+                                        <tr className="border-b border-white/10">
+                                            <th className="sticky top-0 z-20 bg-dark-900/95 backdrop-blur px-4 py-3 text-sm font-semibold text-gray-300">Date/Time</th>
+                                            <th className="sticky top-0 z-20 bg-dark-900/95 backdrop-blur px-4 py-3 text-sm font-semibold text-gray-300">IP Address</th>
+                                            <th className="sticky top-0 z-20 bg-dark-900/95 backdrop-blur px-4 py-3 text-sm font-semibold text-gray-300">Browser</th>
+                                            <th className="sticky top-0 z-20 bg-dark-900/95 backdrop-blur px-4 py-3 text-sm font-semibold text-gray-300">Details</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-white/10">
@@ -541,7 +541,7 @@ const AdminPanel = () => {
                                                 {expandedSessions[session.id] && (
                                                     <tr className="bg-black/20">
                                                         <td colSpan={4} className="px-4 py-3">
-                                                            <pre className="text-xs text-gray-200 overflow-x-auto whitespace-pre-wrap break-words bg-dark-800 border border-white/10 rounded-lg p-3 max-h-72 overflow-y-auto">
+                                                            <pre className="w-full max-w-full text-xs text-gray-200 whitespace-pre-wrap break-all bg-dark-800 border border-white/10 rounded-lg p-3 max-h-72 overflow-y-auto overflow-x-hidden">
                                                                 {JSON.stringify(session.fingerprint_data, null, 2)}
                                                             </pre>
                                                         </td>
