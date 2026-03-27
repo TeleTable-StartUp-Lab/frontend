@@ -269,3 +269,19 @@ code {
   background: rgba(237, 244, 252, 0.85);
   border: 1px solid rgba(15, 23, 42, 0.12);
 }
+
+@keyframes toastProgressDrain {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+.toast-progress {
+  transform-origin: left center;
+  animation-name: toastProgressDrain;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}

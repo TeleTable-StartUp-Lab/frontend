@@ -3,6 +3,7 @@ import api from '../services/api';
 import { useAuth } from './AuthContext';
 
 const RobotControlContext = createContext(null);
+const TOAST_DURATION_MS = 5000;
 
 const getBaseUrl = () => api.defaults.baseURL || process.env.REACT_APP_API_URL || 'http://localhost:3003';
 
@@ -132,11 +133,9 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
           const toast = {
             ...notification,
             toastId,
+            durationMs: TOAST_DURATION_MS,
           };
           setToasts((prev) => [toast, ...prev].slice(0, 5));
-          window.setTimeout(() => {
-            dismissToast(toastId);
-          }, 5000);
           return;
         }
 
@@ -145,7 +144,7 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
         setLastMessage(msg.data);
       }
     };
-  }, [dismissToast, normalizeNotification, normalizeStatusPayload]);
+  }, [normalizeNotification, normalizeStatusPayload]);
 
   const connectEventsWs = useCallback(() => {
     const token = localStorage.getItem('token');
@@ -206,11 +205,9 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
           const toast = {
             ...notification,
             toastId,
+            durationMs: TOAST_DURATION_MS,
           };
           setToasts((prev) => [toast, ...prev].slice(0, 5));
-          window.setTimeout(() => {
-            dismissToast(toastId);
-          }, 5000);
           return;
         }
 
@@ -219,7 +216,7 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
         setLastMessage(msg.data);
       }
     };
-  }, [dismissToast, normalizeNotification, normalizeStatusPayload]);
+  }, [normalizeNotification, normalizeStatusPayload]);
 
   const disconnectWs = useCallback(() => {
     if (wsRef.current) {
