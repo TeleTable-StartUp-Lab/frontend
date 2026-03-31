@@ -17,14 +17,6 @@ const Landing = () => {
         <div className="absolute inset-0 bg-primary/5 blur-[100px] rounded-full pointer-events-none" />
         <div className="relative grid lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">
-              <span className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
-              </span>
-              <span className="text-sm font-medium text-primary">System Online v2.0</span>
-            </div>
-
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-tight">
               The Future of <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
