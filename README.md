@@ -2,7 +2,7 @@
 
 Das Frontend für das TeleTable Projekt - ein autonomes Transportsystem für den modernen Arbeitsplatz.
 
-## 🚀 Features
+## Features
 
 - **Modernes UI/UX**: Entwickelt mit React und Tailwind CSS.
 - **Authentifizierung**: Login und Registrierung mit JWT-Token-Management.
@@ -11,7 +11,7 @@ Das Frontend für das TeleTable Projekt - ein autonomes Transportsystem für den
   - **Steuerung**: Manuelle Steuerung und automatische Routenplanung.
 - **Projekttagebuch**: Verwalten von Arbeitszeiten und Tätigkeiten.
 
-## 🛠 Tech Stack
+## Tech Stack
 
 - **Framework**: [React](https://reactjs.org/)
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/)
@@ -19,7 +19,7 @@ Das Frontend für das TeleTable Projekt - ein autonomes Transportsystem für den
 - **HTTP Client**: [Axios](https://axios-http.com/)
 - **Icons**: [Lucide React](https://lucide.dev/)
 
-## 📦 Installation & Setup
+## Installation & Setup
 
 1. **Repository klonen**
    ```bash
@@ -50,7 +50,7 @@ Das Frontend für das TeleTable Projekt - ein autonomes Transportsystem für den
    ```
    Die App ist unter [http://localhost:3000](http://localhost:3000) erreichbar.
 
-## 🏗 Build
+## Build
 
 Für die Produktion kann die App optimiert gebaut werden:
 
@@ -60,7 +60,7 @@ npm run build
 
 Die Dateien liegen dann im `build/` Ordner bereit für das Deployment.
 
-## 📂 Projektstruktur
+## Projektstruktur
 
 ```
 src/
@@ -75,11 +75,11 @@ src/
 └── utils/             # Hilfsfunktionen
 ```
 
-## 🎨 Design
+## Design
 
 - **Hauptfarbe**: `#98FBCD` (Mint Green)
 - **Design-System**: Tailwind CSS Utility Classes
 
-## 👥 Team
+## Team
 
 TeleTable StartUp Lab Team
