@@ -111,12 +111,6 @@ const Dashboard = () => {
                             </button>
                         </>
                     )}
-                    <div className="flex items-center gap-1.5 md:gap-2">
-                        <span className="relative flex h-2.5 w-2.5 md:h-3 md:w-3">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 md:h-3 md:w-3 bg-success"></span>
-                        </span>
-                    </div>
                 </div>
             </div>
 
