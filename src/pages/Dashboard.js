@@ -116,8 +116,6 @@ const Dashboard = () => {
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-2.5 w-2.5 md:h-3 md:w-3 bg-success"></span>
                         </span>
-                        <span className="text-[10px] md:text-sm font-mono text-success hidden sm:inline">SYSTEM ONLINE</span>
-                        <span className="text-[10px] md:text-sm font-mono text-success sm:hidden">ONLINE</span>
                     </div>
                 </div>
             </div>
