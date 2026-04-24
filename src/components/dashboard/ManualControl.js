@@ -261,11 +261,13 @@ const ManualControl = () => {
       const res = await acquireLock();
       if (res.status === 'error') {
         setLockError(res.message || 'Failed to acquire lock');
+        return;
       } else {
         setLockStatus(res.message || 'Lock acquired');
       }
     } catch (e) {
       setLockError('Failed to acquire lock');
+      return;
     }
     connectWs();
   };
