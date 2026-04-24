@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Activity,
   Bug,
@@ -109,11 +109,25 @@ const QueueTable = ({ routes }) => {
 };
 
 const DebugPanel = ({ onClose }) => {
-  const { debugSnapshot, eventsWsStatus, eventsWsError } = useRobotControl();
+  const {
+    debugSnapshot,
+    debugStatus,
+    debugError,
+    startDebugPolling,
+    stopDebugPolling,
+  } = useRobotControl();
+
+  useEffect(() => {
+    startDebugPolling();
+    return () => {
+      stopDebugPolling();
+    };
+  }, [startDebugPolling, stopDebugPolling]);
+
   const snapshot = debugSnapshot;
-  const loading = !snapshot && eventsWsStatus === 'connecting';
-  const error = !snapshot && eventsWsStatus !== 'connected'
-    ? (eventsWsError || 'Waiting for debug data from websocket.')
+  const loading = !snapshot && debugStatus === 'connecting';
+  const error = !snapshot && debugStatus !== 'connected'
+    ? (debugError || 'Waiting for debug data from HTTP endpoint.')
     : '';
 
   const telemetry = snapshot?.telemetry;
@@ -157,12 +171,12 @@ const DebugPanel = ({ onClose }) => {
               <span className="text-danger">{error}</span>
             ) : (
               <span>
-                Live debug feed: <span className="font-mono text-white">{eventsWsStatus}</span>
+                Debug polling: <span className="font-mono text-white">{debugStatus}</span>
               </span>
             )}
           </div>
           <div className="text-xs text-gray-400 font-mono">
-            /ws/robot/events websocket
+            GET /robot/debug every 1s
           </div>
         </div>
 
@@ -297,9 +311,9 @@ const DebugPanel = ({ onClose }) => {
             >
               <MetricGrid
                 items={[
-                  { label: 'Snapshot Source', value: '/ws/robot/events debug_snapshot' },
+                  { label: 'Snapshot Source', value: 'GET /robot/debug' },
                   { label: 'Sensor Enrichment', value: connection?.robotStatusReachable ? 'robot /status reachable' : 'robot /status unavailable' },
-                  { label: 'Refresh Mode', value: 'live websocket push' },
+                  { label: 'Refresh Mode', value: '1 second HTTP polling while open' },
                 ]}
               />
             </Section>

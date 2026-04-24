@@ -16,10 +16,13 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
   const { user } = useAuth();
   const wsRef = useRef(null);
   const eventsWsRef = useRef(null);
+  const debugPollIntervalRef = useRef(null);
   const [wsStatus, setWsStatus] = useState('disconnected');
   const [wsError, setWsError] = useState('');
   const [eventsWsStatus, setEventsWsStatus] = useState('disconnected');
   const [eventsWsError, setEventsWsError] = useState('');
+  const [debugStatus, setDebugStatus] = useState('idle');
+  const [debugError, setDebugError] = useState('');
   const [lastMessage, setLastMessage] = useState(null);
   const [statusData, setStatusData] = useState({
     systemHealth: 'UNKNOWN',
@@ -74,6 +77,47 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
     connection: data.connection ?? null,
     sensors: data.sensors ?? null,
   }), []);
+
+  const fetchDebugSnapshot = useCallback(async () => {
+    try {
+      const response = await api.get('/robot/debug');
+      setDebugSnapshot(normalizeDebugSnapshot(response.data));
+      setDebugStatus('connected');
+      setDebugError('');
+      return response.data;
+    } catch (error) {
+      setDebugStatus('error');
+      setDebugError(error?.response?.data?.error || error?.message || 'Failed to load debug snapshot');
+      throw error;
+    }
+  }, [normalizeDebugSnapshot]);
+
+  const stopDebugPolling = useCallback(() => {
+    if (debugPollIntervalRef.current) {
+      window.clearInterval(debugPollIntervalRef.current);
+      debugPollIntervalRef.current = null;
+    }
+    setDebugStatus('idle');
+  }, []);
+
+  const startDebugPolling = useCallback(async () => {
+    if (debugPollIntervalRef.current) {
+      return;
+    }
+
+    setDebugStatus((prev) => (prev === 'connected' ? prev : 'connecting'));
+    setDebugError('');
+
+    try {
+      await fetchDebugSnapshot();
+    } catch {
+      // Keep polling even if the initial request fails.
+    }
+
+    debugPollIntervalRef.current = window.setInterval(() => {
+      fetchDebugSnapshot().catch(() => {});
+    }, 1000);
+  }, [fetchDebugSnapshot]);
 
   const dismissToast = useCallback((toastId) => {
     setToasts((prev) => prev.filter((toast) => toast.toastId !== toastId));
@@ -153,7 +197,7 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
         setLastMessage(msg.data);
       }
     };
-  }, [normalizeDebugSnapshot, normalizeNotification, normalizeStatusPayload]);
+  }, [normalizeNotification, normalizeStatusPayload]);
 
   const connectEventsWs = useCallback(() => {
     const token = localStorage.getItem('token');
@@ -220,17 +264,12 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
           return;
         }
 
-        if (parsed?.event === 'debug_snapshot' && parsed?.data) {
-          setDebugSnapshot(normalizeDebugSnapshot(parsed.data));
-          return;
-        }
-
         setLastMessage(msg.data);
       } catch {
         setLastMessage(msg.data);
       }
     };
-  }, [normalizeDebugSnapshot, normalizeNotification, normalizeStatusPayload]);
+  }, [normalizeNotification, normalizeStatusPayload]);
 
   const disconnectWs = useCallback(() => {
     if (wsRef.current) {
@@ -343,8 +382,9 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
       }
       disconnectWs();
       disconnectEventsWs();
+      stopDebugPolling();
     };
-  }, [autoConnect, connectEventsWs, disconnectEventsWs, disconnectWs, releaseLock]);
+  }, [autoConnect, connectEventsWs, disconnectEventsWs, disconnectWs, releaseLock, stopDebugPolling]);
 
   useEffect(() => {
     if (!localStorage.getItem('token')) {
@@ -382,6 +422,8 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
         eventsWsRef.current.close();
         eventsWsRef.current = null;
       }
+      setDebugStatus('error');
+      setDebugError('Offline');
     };
 
     const handleOnline = () => {
@@ -389,6 +431,8 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
       setWsStatus((prev) => (prev === 'error' ? 'disconnected' : prev));
       setEventsWsError('');
       setEventsWsStatus((prev) => (prev === 'error' ? 'disconnected' : prev));
+      setDebugError('');
+      setDebugStatus((prev) => (prev === 'error' ? 'idle' : prev));
     };
 
     window.addEventListener('offline', handleOffline);
@@ -406,6 +450,8 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
       wsError,
       eventsWsStatus,
       eventsWsError,
+      debugStatus,
+      debugError,
       lastMessage,
       statusData,
       debugSnapshot,
@@ -416,6 +462,8 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
       clearNotifications,
       connectWs,
       connectEventsWs,
+      startDebugPolling,
+      stopDebugPolling,
       disconnectWs,
       disconnectEventsWs,
       sendCommand,
@@ -430,6 +478,8 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
       wsError,
       eventsWsStatus,
       eventsWsError,
+      debugStatus,
+      debugError,
       lastMessage,
       statusData,
       debugSnapshot,
@@ -439,6 +489,8 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
       clearNotifications,
       connectWs,
       connectEventsWs,
+      startDebugPolling,
+      stopDebugPolling,
       disconnectWs,
       disconnectEventsWs,
       sendCommand,
