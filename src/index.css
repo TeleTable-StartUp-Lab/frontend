@@ -127,16 +127,18 @@ code {
 /* Light theme overrides */
 .theme-light body,
 .theme-light #root {
-  background-color: #e7edf6;
-  color: #0b1220;
+  background-color: #eff3f8;
+  color: #0f172a;
 }
 
 .theme-light body {
   background-image:
-    radial-gradient(1200px 520px at 10% -10%, rgba(56, 189, 248, 0.10), transparent 60%),
-    radial-gradient(900px 460px at 90% 0%, rgba(99, 102, 241, 0.08), transparent 60%),
-    linear-gradient(180deg, #edf3fb 0%, #e6edf7 48%, #dfe8f3 100%);
+    radial-gradient(1200px 520px at 10% -10%, rgba(56, 189, 248, 0.08), transparent 60%),
+    radial-gradient(900px 460px at 90% 0%, rgba(99, 102, 241, 0.06), transparent 60%),
+    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 46%, #e8eef5 100%);
   background-attachment: fixed;
+  line-height: 1.6;
+  letter-spacing: 0.002em;
 }
 
 .theme-light #root {
@@ -148,11 +150,11 @@ code {
 }
 
 .theme-light .text-white {
-  color: #0b1220;
+  color: #0f172a;
 }
 
 .theme-light .hover\:text-white:hover {
-  color: #0b1220;
+  color: #0f172a;
 }
 
 .theme-light .text-gray-200 {
@@ -160,19 +162,19 @@ code {
 }
 
 .theme-light .text-gray-300 {
-  color: #111827;
+  color: #1e293b;
 }
 
 .theme-light .text-gray-400 {
-  color: #1f2937;
-}
-
-.theme-light .text-gray-500 {
   color: #334155;
 }
 
-.theme-light .text-gray-600 {
+.theme-light .text-gray-500 {
   color: #475569;
+}
+
+.theme-light .text-gray-600 {
+  color: #64748b;
 }
 
 .theme-light .text-primary {
@@ -184,23 +186,23 @@ code {
 }
 
 .theme-light .bg-dark-900 {
-  background-color: #eaf1fa;
+  background-color: #f4f7fb;
 }
 
 .theme-light .bg-dark-800 {
-  background-color: #e2ebf7;
+  background-color: #edf2f8;
 }
 
 .theme-light .bg-dark-700 {
-  background-color: #d7e1ef;
+  background-color: #e4ebf3;
 }
 
 .theme-light .bg-dark-600 {
-  background-color: #cfdbea;
+  background-color: #dce5ef;
 }
 
 .theme-light .bg-dark-800\/50 {
-  background-color: rgba(226, 235, 247, 0.82);
+  background-color: rgba(237, 242, 248, 0.84);
 }
 
 .theme-light .focus\:bg-dark-800:focus {
@@ -208,66 +210,66 @@ code {
 }
 
 .theme-light .hover\:bg-dark-800\/80:hover {
-  background-color: rgba(226, 235, 247, 0.92);
+  background-color: rgba(237, 242, 248, 0.96);
 }
 
 .theme-light .hover\:bg-dark-700:hover {
-  background-color: #d7e1ef;
+  background-color: #e4ebf3;
 }
 
 .theme-light .hover\:bg-dark-600:hover {
-  background-color: #cfdbea;
+  background-color: #dce5ef;
 }
 
 .theme-light .bg-dark-800\/60 {
-  background-color: rgba(226, 235, 247, 0.86);
+  background-color: rgba(237, 242, 248, 0.88);
 }
 
 .theme-light .bg-dark-900\/80 {
-  background-color: rgba(234, 241, 250, 0.88);
+  background-color: rgba(244, 247, 251, 0.90);
 }
 
 .theme-light .bg-dark-900\/95 {
-  background-color: rgba(234, 241, 250, 0.95);
+  background-color: rgba(244, 247, 251, 0.96);
 }
 
 .theme-light .bg-dark-900\/50 {
-  background-color: rgba(234, 241, 250, 0.68);
+  background-color: rgba(244, 247, 251, 0.72);
 }
 
 .theme-light .bg-white\/5 {
-  background-color: rgba(15, 23, 42, 0.05);
+  background-color: rgba(51, 65, 85, 0.05);
 }
 
 .theme-light .bg-white\/10 {
-  background-color: rgba(15, 23, 42, 0.08);
+  background-color: rgba(51, 65, 85, 0.08);
 }
 
 .theme-light .border-white\/5 {
-  border-color: rgba(15, 23, 42, 0.10);
+  border-color: rgba(51, 65, 85, 0.10);
 }
 
 .theme-light .border-white\/10 {
-  border-color: rgba(15, 23, 42, 0.15);
+  border-color: rgba(51, 65, 85, 0.15);
 }
 
 .theme-light .border-white\/20 {
-  border-color: rgba(15, 23, 42, 0.20);
+  border-color: rgba(51, 65, 85, 0.20);
 }
 
 .theme-light .glass-panel {
-  background: rgba(240, 246, 253, 0.82);
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  box-shadow: 0 10px 26px 0 rgba(15, 23, 42, 0.11);
+  background: rgba(249, 251, 253, 0.86);
+  border: 1px solid rgba(51, 65, 85, 0.12);
+  box-shadow: 0 12px 28px 0 rgba(15, 23, 42, 0.08);
 }
 
 .theme-light .glass-input {
-  background: rgba(236, 243, 251, 0.86);
+  background: rgba(245, 249, 253, 0.90);
 }
 
 .theme-light .glass-card {
-  background: rgba(237, 244, 252, 0.85);
-  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(247, 250, 253, 0.88);
+  border: 1px solid rgba(51, 65, 85, 0.12);
 }
 
 @keyframes toastProgressDrain {

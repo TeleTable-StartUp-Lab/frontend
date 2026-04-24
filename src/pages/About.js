@@ -109,8 +109,13 @@ const About = () => {
                                 className="block"
                                 aria-label="Visit ABUSCOM website"
                             >
-                                <div className="h-24 md:h-28 rounded-xl border border-dashed border-primary/40 bg-dark-800/70 flex items-center justify-center text-primary font-semibold tracking-wider hover:border-primary/70 transition-colors">
-                                    LOGO PLACEHOLDER
+                                <div className="h-24 md:h-28 rounded-xl border border-white/10 bg-white px-4 py-3 flex items-center justify-center hover:border-primary/40 transition-colors">
+                                    <img
+                                        src="/abuscomo-logo.png"
+                                        alt="ABUSCOM logo"
+                                        className="max-h-full max-w-full object-contain"
+                                        loading="lazy"
+                                    />
                                 </div>
                             </a>
                         </div>

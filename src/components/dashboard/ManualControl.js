@@ -3,6 +3,9 @@ import { Gamepad2, Link2, Power, MessageSquare } from 'lucide-react';
 import { useRobotControl } from '../../context/RobotControlContext';
 import { useAuth } from '../../context/AuthContext';
 
+const DRIVE_COMMAND_INTERVAL_MS = 75;
+const DRIVE_COMMAND_EPSILON = 0.02;
+
 const ManualControl = () => {
   const { wsStatus, wsError, lastMessage, connectWs, disconnectWs, sendCommand, acquireLock, releaseLock } = useRobotControl();
   const { user } = useAuth();
@@ -13,6 +16,9 @@ const ManualControl = () => {
   const [isDragging, setIsDragging] = useState(false);
   const constraintsRef = useRef(null);
   const lastSendRef = useRef(0);
+  const queuedCommandRef = useRef(null);
+  const lastCommandRef = useRef(null);
+  const flushTimeoutRef = useRef(null);
   const pressedKeysRef = useRef(new Set());
   const maxLinear = 1.0;
   const maxAngular = 2.0;
@@ -49,16 +55,73 @@ const ManualControl = () => {
     };
   }, [isDragging, isTouchDevice]);
 
-  const sendDriveCommand = useCallback((linear, angular, force = false) => {
-    const now = Date.now();
-    if (!force && now - lastSendRef.current < 25) return;
-    lastSendRef.current = now;
-    sendCommand({
+  const clearScheduledFlush = useCallback(() => {
+    if (flushTimeoutRef.current) {
+      clearTimeout(flushTimeoutRef.current);
+      flushTimeoutRef.current = null;
+    }
+  }, []);
+
+  const hasMeaningfulChange = useCallback((next, previous) => {
+    if (!previous) return true;
+    return (
+      Math.abs(next.linear - previous.linear) >= DRIVE_COMMAND_EPSILON
+      || Math.abs(next.angular - previous.angular) >= DRIVE_COMMAND_EPSILON
+    );
+  }, []);
+
+  const flushDriveCommand = useCallback((force = false) => {
+    const nextCommand = queuedCommandRef.current;
+    if (!nextCommand) return;
+
+    if (!force && !hasMeaningfulChange(nextCommand, lastCommandRef.current)) {
+      queuedCommandRef.current = null;
+      return;
+    }
+
+    const sent = sendCommand({
       command: 'DRIVE_COMMAND',
-      linear_velocity: linear,
-      angular_velocity: angular,
+      linear_velocity: nextCommand.linear,
+      angular_velocity: nextCommand.angular,
     });
-  }, [sendCommand]);
+
+    if (!sent) return;
+
+    lastSendRef.current = Date.now();
+    lastCommandRef.current = nextCommand;
+    queuedCommandRef.current = null;
+  }, [hasMeaningfulChange, sendCommand]);
+
+  const sendDriveCommand = useCallback((linear, angular, force = false) => {
+    const nextCommand = { linear, angular };
+    queuedCommandRef.current = nextCommand;
+
+    if (force) {
+      clearScheduledFlush();
+      flushDriveCommand(true);
+      return;
+    }
+
+    const now = Date.now();
+    const elapsed = now - lastSendRef.current;
+
+    if (elapsed >= DRIVE_COMMAND_INTERVAL_MS) {
+      clearScheduledFlush();
+      flushDriveCommand();
+      return;
+    }
+
+    if (!flushTimeoutRef.current) {
+      flushTimeoutRef.current = setTimeout(() => {
+        flushTimeoutRef.current = null;
+        flushDriveCommand();
+      }, DRIVE_COMMAND_INTERVAL_MS - elapsed);
+    }
+  }, [clearScheduledFlush, flushDriveCommand]);
+
+  useEffect(() => () => {
+    clearScheduledFlush();
+  }, [clearScheduledFlush]);
 
   const updateFromOffset = useCallback((x, y) => {
     const threshold = 8;
@@ -75,8 +138,8 @@ const ManualControl = () => {
     const normX = clampedX / maxRadius;
     const normY = clampedY / maxRadius;
 
-    const linear = Math.max(-1, Math.min(1, -normY)) * maxLinear;
-    const angular = Math.max(-1, Math.min(1, -normX)) * maxAngular;
+    const linear = Number((Math.max(-1, Math.min(1, -normY)) * maxLinear).toFixed(2));
+    const angular = Number((Math.max(-1, Math.min(1, -normX)) * maxAngular).toFixed(2));
 
     sendDriveCommand(linear, angular);
   }, [maxAngular, maxLinear, sendDriveCommand]);
