@@ -23,6 +23,8 @@ const FONT_CANDIDATES = [
 const FONT_BASES = ['monospace', 'sans-serif', 'serif'];
 const FONT_TEST_STRING = 'mmmmmmmmmmlliWWWWWW@@@#12345אבגדהζηθικ漢字🙂';
 
+const FINGERPRINT_STEP_TIMEOUT_MS = 1200;
+
 const connectionFromNavigator = () =>
   navigator.connection || navigator.mozConnection || navigator.webkitConnection || null;
 
@@ -39,6 +41,14 @@ const fallbackHash = (value) => {
   }
   return `fallback_${Math.abs(hash)}`;
 };
+
+const withTimeout = (promise, fallback, timeoutMs = FINGERPRINT_STEP_TIMEOUT_MS) =>
+  Promise.race([
+    promise,
+    new Promise((resolve) => {
+      window.setTimeout(() => resolve(fallback), timeoutMs);
+    }),
+  ]);
 
 const hashString = async (value) => {
   try {
@@ -225,10 +235,16 @@ const getBatteryStatus = async () => {
 
 export const collectFingerprintData = async () => {
   const [canvasHash, webgl, audioHash, batteryStatus] = await Promise.all([
-    getCanvasFingerprint(),
-    getWebGLFingerprint(),
-    getAudioFingerprint(),
-    getBatteryStatus(),
+    withTimeout(getCanvasFingerprint(), null),
+    withTimeout(getWebGLFingerprint(), { vendor: null, renderer: null, hash: null }),
+    withTimeout(getAudioFingerprint(), null),
+    withTimeout(getBatteryStatus(), {
+      supported: false,
+      level: null,
+      charging: null,
+      chargingTime: null,
+      dischargingTime: null,
+    }),
   ]);
 
   const installedFonts = getInstalledFonts();
