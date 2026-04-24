@@ -52,6 +52,25 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
     canManageDriveRef.current = canManageDrive;
   }, [canManageDrive]);
 
+  const normalizeNode = useCallback((node) => {
+    if (!node) {
+      return null;
+    }
+
+    const id = typeof node === 'string'
+      ? node
+      : (node.id ?? node.value ?? '');
+    const label = typeof node === 'string'
+      ? node
+      : (node.label ?? node.name ?? id);
+
+    if (!id) {
+      return null;
+    }
+
+    return { id, label: label || id };
+  }, []);
+
   const normalizeStatusPayload = useCallback((data = {}) => ({
     systemHealth: data.systemHealth ?? data.system_health ?? 'UNKNOWN',
     batteryLevel: data.batteryLevel ?? data.battery_level ?? 0,
@@ -61,8 +80,10 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
     lastRoute: data.lastRoute ?? data.last_route ?? null,
     manualLockHolderName: data.manualLockHolderName ?? data.manual_lock_holder_name ?? null,
     robotConnected: data.robotConnected ?? data.robot_connected ?? false,
-    nodes: data.nodes ?? [],
-  }), []);
+    nodes: Array.isArray(data.nodes)
+      ? data.nodes.map(normalizeNode).filter(Boolean)
+      : [],
+  }), [normalizeNode]);
 
   const normalizeNotification = useCallback((data = {}) => ({
     id: data.id ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`,
@@ -360,8 +381,11 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
 
   const getNodes = useCallback(async () => {
     const response = await api.get('/nodes');
-    return response.data;
-  }, []);
+    const nodes = Array.isArray(response.data?.nodes)
+      ? response.data.nodes.map(normalizeNode).filter(Boolean)
+      : [];
+    return { ...response.data, nodes };
+  }, [normalizeNode]);
 
   const selectRoute = useCallback(async (start, destination) => {
     const response = await api.post('/routes/select', { start, destination });
@@ -402,6 +426,26 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
 
     loadNotificationHistory().catch(() => {});
   }, [loadNotificationHistory]);
+
+  useEffect(() => {
+    if (!localStorage.getItem('token')) {
+      return;
+    }
+
+    getNodes()
+      .then((response) => {
+        if (!response.nodes.length) {
+          return;
+        }
+
+        setStatusData((prev) => (
+          prev.nodes.length
+            ? prev
+            : { ...prev, nodes: response.nodes }
+        ));
+      })
+      .catch(() => {});
+  }, [getNodes]);
 
   useEffect(() => {
     const handlePageLeave = () => {
@@ -453,6 +497,19 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
     };
   }, []);
 
+  const nodeLabelMap = useMemo(() => {
+    const entries = statusData.nodes.map((node) => [node.id, node.label]);
+    return new Map(entries);
+  }, [statusData.nodes]);
+
+  const resolveNodeLabel = useCallback((nodeId, fallback = '—') => {
+    if (!nodeId) {
+      return fallback;
+    }
+
+    return nodeLabelMap.get(nodeId) || nodeId;
+  }, [nodeLabelMap]);
+
   const value = useMemo(
     () => ({
       wsStatus,
@@ -465,6 +522,7 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
       statusData,
       debugSnapshot,
       nodes: statusData.nodes,
+      resolveNodeLabel,
       notifications,
       toasts,
       dismissToast,
@@ -492,6 +550,7 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
       lastMessage,
       statusData,
       debugSnapshot,
+      resolveNodeLabel,
       notifications,
       toasts,
       dismissToast,

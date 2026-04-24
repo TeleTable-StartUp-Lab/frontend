@@ -94,12 +94,14 @@ const ConnectionStatusCard = ({ title, state }) => (
 );
 
 const Telemetry = () => {
-  const { statusData, eventsWsStatus, eventsWsError } = useRobotControl();
+  const { statusData, eventsWsStatus, eventsWsError, resolveNodeLabel } = useRobotControl();
 
   const lastOrder = useMemo(() => {
     if (!statusData.lastRoute) return '—';
-    return `${statusData.lastRoute.startNode || statusData.lastRoute.start_node} -> ${statusData.lastRoute.endNode || statusData.lastRoute.end_node}`;
-  }, [statusData.lastRoute]);
+    const start = statusData.lastRoute.startNode || statusData.lastRoute.start_node;
+    const end = statusData.lastRoute.endNode || statusData.lastRoute.end_node;
+    return `${resolveNodeLabel(start)} -> ${resolveNodeLabel(end)}`;
+  }, [resolveNodeLabel, statusData.lastRoute]);
 
   const frontendConnection = useMemo(
     () => getFrontendConnectionState(eventsWsStatus, eventsWsError),
@@ -170,7 +172,7 @@ const Telemetry = () => {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-gray-400">
           <div className="bg-dark-800/50 rounded-lg p-3 border border-white/5">
             <div className="text-gray-500">Position</div>
-            <div className="text-white font-mono text-sm">{statusData.position}</div>
+            <div className="text-white font-mono text-sm">{resolveNodeLabel(statusData.position, statusData.position)}</div>
           </div>
           <div className="bg-dark-800/50 rounded-lg p-3 border border-white/5">
             <div className="text-gray-500">Drive Mode</div>

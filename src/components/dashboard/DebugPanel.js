@@ -25,11 +25,11 @@ const formatTimestamp = (value) => {
   return Number.isNaN(date.getTime()) ? EMPTY_VALUE : date.toLocaleString();
 };
 
-const formatRoute = (route) => {
+const formatRoute = (route, resolveNodeLabel) => {
   if (!route) return EMPTY_VALUE;
   const start = route.startNode || route.start_node || route.start || EMPTY_VALUE;
   const end = route.endNode || route.end_node || route.destination || EMPTY_VALUE;
-  return `${start} -> ${end}`;
+  return `${resolveNodeLabel(start, start)} -> ${resolveNodeLabel(end, end)}`;
 };
 
 const sensorValue = (value, formatter = formatValue) => {
@@ -71,7 +71,7 @@ const Section = ({ icon: Icon, title, children, actions = null }) => (
   </section>
 );
 
-const QueueTable = ({ routes }) => {
+const QueueTable = ({ routes, resolveNodeLabel }) => {
   if (!routes.length) {
     return (
       <div className="rounded-lg border border-dashed border-white/10 px-4 py-6 text-sm text-gray-400 text-center">
@@ -94,8 +94,8 @@ const QueueTable = ({ routes }) => {
         <tbody className="divide-y divide-white/5">
           {routes.map((route) => (
             <tr key={route.id} className="bg-dark-900/30">
-              <td className="px-4 py-3 font-mono text-white">{route.start}</td>
-              <td className="px-4 py-3 font-mono text-white">{route.destination}</td>
+              <td className="px-4 py-3 font-mono text-white">{resolveNodeLabel(route.start, route.start)}</td>
+              <td className="px-4 py-3 font-mono text-white">{resolveNodeLabel(route.destination, route.destination)}</td>
               <td className="px-4 py-3 text-gray-300">{route.addedBy || route.added_by || EMPTY_VALUE}</td>
               <td className="px-4 py-3 text-gray-400">
                 {formatTimestamp(route.addedAt || route.added_at)}
@@ -113,6 +113,7 @@ const DebugPanel = ({ onClose }) => {
     debugSnapshot,
     debugStatus,
     debugError,
+    resolveNodeLabel,
     startDebugPolling,
     stopDebugPolling,
   } = useRobotControl();
@@ -123,7 +124,6 @@ const DebugPanel = ({ onClose }) => {
       stopDebugPolling();
     };
   }, [startDebugPolling, stopDebugPolling]);
-
   const snapshot = debugSnapshot;
   const loading = !snapshot && debugStatus === 'connecting';
   const error = !snapshot && debugStatus !== 'connected'
@@ -193,8 +193,8 @@ const DebugPanel = ({ onClose }) => {
                   { label: 'Battery Level', value: telemetry?.batteryLevel !== undefined ? `${formatValue(telemetry?.batteryLevel)}%` : EMPTY_VALUE },
                   { label: 'Drive Mode', value: formatValue(telemetry?.driveMode) },
                   { label: 'Cargo Status', value: formatValue(telemetry?.cargoStatus) },
-                  { label: 'Position', value: formatValue(telemetry?.position) },
-                  { label: 'Last Route', value: formatRoute(telemetry?.lastRoute) },
+                  { label: 'Position', value: resolveNodeLabel(telemetry?.position, formatValue(telemetry?.position)) },
+                  { label: 'Last Route', value: formatRoute(telemetry?.lastRoute, resolveNodeLabel) },
                   { label: 'Robot Connected', value: formatValue(telemetry?.robotConnected) },
                 ]}
               />
@@ -216,12 +216,17 @@ const DebugPanel = ({ onClose }) => {
             <Section icon={Route} title="Routing">
               <MetricGrid
                 items={[
-                  { label: 'Active Route', value: formatRoute(routing?.activeRoute) },
+                  { label: 'Active Route', value: formatRoute(routing?.activeRoute, resolveNodeLabel) },
                   { label: 'Queue Length', value: formatValue(routing?.queueLength) },
-                  { label: 'Known Nodes', value: routing?.nodes?.length ? routing.nodes.join(', ') : EMPTY_VALUE },
+                  {
+                    label: 'Known Nodes',
+                    value: routing?.nodes?.length
+                      ? routing.nodes.map((node) => node.label || node.id).join(', ')
+                      : EMPTY_VALUE,
+                  },
                 ]}
               />
-              <QueueTable routes={routing?.queue || []} />
+              <QueueTable routes={routing?.queue || []} resolveNodeLabel={resolveNodeLabel} />
             </Section>
 
             <Section icon={Cpu} title="Sensors">

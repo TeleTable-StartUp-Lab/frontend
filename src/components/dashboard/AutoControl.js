@@ -76,7 +76,7 @@ const AutoControl = () => {
                 className="block w-full pl-10 pr-10 py-2.5 border border-white/10 rounded-lg bg-dark-800/50 text-gray-300 focus:outline-none focus:bg-dark-800 focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm transition-all appearance-none cursor-pointer hover:bg-dark-800/80"
               >
                 <option value="">Select Start</option>
-                {nodes.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+                {nodes.map((node) => <option key={node.id} value={node.id}>{node.label}</option>)}
               </select>
             </div>
           </div>
@@ -93,7 +93,7 @@ const AutoControl = () => {
                 className="block w-full pl-10 pr-10 py-2.5 border border-white/10 rounded-lg bg-dark-800/50 text-gray-300 focus:outline-none focus:bg-dark-800 focus:border-secondary focus:ring-1 focus:ring-secondary sm:text-sm transition-all appearance-none cursor-pointer hover:bg-dark-800/80"
               >
                 <option value="">Select Destination</option>
-                {nodes.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+                {nodes.map((node) => <option key={node.id} value={node.id}>{node.label}</option>)}
               </select>
             </div>
           </div>

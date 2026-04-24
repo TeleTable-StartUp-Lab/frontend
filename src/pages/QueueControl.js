@@ -4,6 +4,7 @@ import { Trash2, Zap, RefreshCw, AlertCircle, MapPin, ArrowRight } from 'lucide-
 
 const QueueControl = ({ embedded = false }) => {
   const [routes, setRoutes] = useState([]);
+  const [nodeMap, setNodeMap] = useState(new Map());
   const [loading, setLoading] = useState(true);
   const [optimizing, setOptimizing] = useState(false);
   const [error, setError] = useState('');
@@ -23,10 +24,23 @@ const QueueControl = ({ embedded = false }) => {
     }
   };
 
+  const fetchNodes = async () => {
+    try {
+      const response = await api.get('/nodes');
+      const nodes = Array.isArray(response.data?.nodes) ? response.data.nodes : [];
+      setNodeMap(new Map(nodes.map((node) => [node.id, node.label || node.id])));
+    } catch (err) {
+      console.error('Failed to load nodes:', err);
+    }
+  };
+
+  const resolveNodeLabel = (nodeId) => nodeMap.get(nodeId) || nodeId;
+
   useEffect(() => {
     if (!embedded) {
       document.title = 'TeleTable - Queue Control';
     }
+    fetchNodes();
     fetchRoutes();
     
     // Auto refresh every 5 seconds to show new routes coming from WS/HTTP
@@ -160,9 +174,9 @@ const QueueControl = ({ embedded = false }) => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center gap-2 text-white">
-                                            <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs font-mono">{route.start}</span>
+                                            <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs font-mono">{resolveNodeLabel(route.start)}</span>
                                             <ArrowRight className="h-4 w-4 text-gray-500" />
-                                            <span className="px-2 py-1 bg-primary/20 text-primary rounded text-xs font-mono">{route.destination}</span>
+                                            <span className="px-2 py-1 bg-primary/20 text-primary rounded text-xs font-mono">{resolveNodeLabel(route.destination)}</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
