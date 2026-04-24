@@ -52,6 +52,7 @@ Dokumentation der geplanten Kommunikation zwischen Frontend und Backend, bevor d
 - POST /drive/lock
 - DELETE /drive/lock
 - GET /robot/check
+- GET /robot/debug
 - GET /robot/notifications
 - WS /ws/robot/events?token=<jwt> (status_update + robot_notification)
 - WS /ws/drive/manual?token=<jwt> (manual command input)
@@ -130,6 +131,7 @@ Dokumentation der geplanten Kommunikation zwischen Frontend und Backend, bevor d
 
 ## Caching & Revalidation
 - Robot-Status via WebSocket-Events (`status_update`) statt Polling
+- Admin-Debugdaten via `GET /robot/debug` mit HTTP-Polling, solange das Debug-Panel offen ist
 - Notification-History über `GET /robot/notifications`
 - Keine aggressive Cache-Strategie
 
