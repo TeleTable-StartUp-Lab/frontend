@@ -78,6 +78,42 @@ const getRobotConnectionState = (robotConnected, wsStatus) => {
   };
 };
 
+const getControlChannelState = (controlChannelConnected, robotConnected, wsStatus) => {
+  if (wsStatus === 'connecting') {
+    return {
+      label: 'Checking control',
+      detail: 'Waiting for backend control-channel status',
+      dotClassName: 'bg-warning animate-pulse',
+      textClassName: 'text-warning',
+    };
+  }
+
+  if (controlChannelConnected) {
+    return {
+      label: 'Control channel ready',
+      detail: 'Backend can stream commands to the robot',
+      dotClassName: 'bg-success animate-pulse',
+      textClassName: 'text-success',
+    };
+  }
+
+  if (!robotConnected) {
+    return {
+      label: 'Control channel unavailable',
+      detail: 'No fresh robot session is available yet',
+      dotClassName: 'bg-danger',
+      textClassName: 'text-danger',
+    };
+  }
+
+  return {
+    label: 'Control channel disconnected',
+    detail: 'Telemetry is fresh, but backend cannot deliver robot commands',
+    dotClassName: 'bg-danger',
+    textClassName: 'text-danger',
+  };
+};
+
 const ConnectionStatusCard = ({ title, state }) => (
   <div className="rounded-lg border border-white/10 bg-dark-900/40 px-4 py-3">
     <div className="flex items-start justify-between gap-3">
@@ -113,6 +149,15 @@ const Telemetry = () => {
     [eventsWsStatus, statusData.robotConnected]
   );
 
+  const controlChannel = useMemo(
+    () => getControlChannelState(
+      statusData.controlChannelConnected,
+      statusData.robotConnected,
+      eventsWsStatus
+    ),
+    [eventsWsStatus, statusData.controlChannelConnected, statusData.robotConnected]
+  );
+
   return (
     <div className="glass-panel rounded-xl p-6 border border-white/10 relative overflow-hidden group">
       <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
@@ -131,9 +176,10 @@ const Telemetry = () => {
           <div className={`text-3xl font-bold font-mono tracking-wider ${getHealthColor(statusData.systemHealth)}`}>
             {statusData.systemHealth}
           </div>
-          <div className="mt-3 grid grid-cols-1 xl:grid-cols-2 gap-3">
+          <div className="mt-3 grid grid-cols-1 xl:grid-cols-3 gap-3">
             <ConnectionStatusCard title="Frontend -> Backend" state={frontendConnection} />
             <ConnectionStatusCard title="Robot -> Backend" state={robotConnection} />
+            <ConnectionStatusCard title="Backend -> Robot Control" state={controlChannel} />
           </div>
         </div>
 
