@@ -208,7 +208,6 @@ const DebugPanel = ({ onClose }) => {
                   { label: 'Lock Expires At', value: formatTimestamp(lock?.expiresAt) },
                   { label: 'Robot URL', value: formatValue(connection?.robotUrl) },
                   { label: 'Last State Update', value: formatTimestamp(connection?.lastStateUpdate) },
-                  { label: 'Control Channel Connected', value: formatValue(connection?.controlChannelConnected) },
                   { label: 'Robot Status Reachable', value: formatValue(connection?.robotStatusReachable) },
                 ]}
               />

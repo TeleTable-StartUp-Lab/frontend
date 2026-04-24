@@ -34,7 +34,6 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
     lastRoute: null,
     manualLockHolderName: null,
     robotConnected: false,
-    controlChannelConnected: false,
     nodes: [],
   });
   const [debugSnapshot, setDebugSnapshot] = useState(null);
@@ -81,7 +80,6 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
     lastRoute: data.lastRoute ?? data.last_route ?? null,
     manualLockHolderName: data.manualLockHolderName ?? data.manual_lock_holder_name ?? null,
     robotConnected: data.robotConnected ?? data.robot_connected ?? false,
-    controlChannelConnected: data.controlChannelConnected ?? data.control_channel_connected ?? false,
     nodes: Array.isArray(data.nodes)
       ? data.nodes.map(normalizeNode).filter(Boolean)
       : [],
