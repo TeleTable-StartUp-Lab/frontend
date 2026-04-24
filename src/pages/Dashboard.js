@@ -3,9 +3,10 @@ import { createPortal } from 'react-dom';
 import Telemetry from '../components/dashboard/Telemetry';
 import ManualControl from '../components/dashboard/ManualControl';
 import AutoControl from '../components/dashboard/AutoControl';
+import DebugPanel from '../components/dashboard/DebugPanel';
 import { RobotControlProvider } from '../context/RobotControlContext';
 import { useAuth } from '../context/AuthContext';
-import { ListOrdered, SlidersHorizontal, X } from 'lucide-react';
+import { Bug, ListOrdered, SlidersHorizontal, X } from 'lucide-react';
 import QueueControl from './QueueControl';
 import PeripheralControl from '../components/dashboard/PeripheralControl';
 import RobotNotificationsPanel from '../components/dashboard/RobotNotificationsPanel';
@@ -16,6 +17,7 @@ const Dashboard = () => {
     const isAdmin = user?.role === 'Admin';
     const [isQueueOpen, setIsQueueOpen] = useState(false);
     const [isPeripheralsOpen, setIsPeripheralsOpen] = useState(false);
+    const [isDebugOpen, setIsDebugOpen] = useState(false);
 
     useEffect(() => {
         document.title = 'TeleTable - Dashboard';
@@ -81,6 +83,18 @@ const Dashboard = () => {
         )
         : null;
 
+    const debugModal = isDebugOpen && canUseDom
+        ? createPortal(
+            <div
+                className="fixed inset-0 z-[60] flex items-center justify-center p-2 md:p-4 bg-black/60 backdrop-blur-sm"
+                onMouseDown={() => setIsDebugOpen(false)}
+            >
+                <DebugPanel onClose={() => setIsDebugOpen(false)} />
+            </div>,
+            document.body
+        )
+        : null;
+
     return (
         <RobotControlProvider autoConnect>
             <div className="space-y-4 md:space-y-8">
@@ -108,6 +122,14 @@ const Dashboard = () => {
                                 <SlidersHorizontal className="w-4 h-4" />
                                 <span className="text-xs md:text-sm font-medium hidden sm:inline">Peripherals</span>
                                 <span className="text-xs md:text-sm font-medium sm:hidden">LED</span>
+                            </button>
+                            <button
+                                onClick={() => setIsDebugOpen(true)}
+                                className="inline-flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-1.5 md:py-2 rounded-lg bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+                                title="Debug Telemetry"
+                            >
+                                <Bug className="w-4 h-4" />
+                                <span className="text-xs md:text-sm font-medium">Debug</span>
                             </button>
                         </>
                     )}
@@ -143,6 +165,7 @@ const Dashboard = () => {
 
             {queueModal}
             {peripheralsModal}
+            {debugModal}
             </div>
         </RobotControlProvider>
     );

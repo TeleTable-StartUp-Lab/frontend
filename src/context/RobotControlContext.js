@@ -32,6 +32,7 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
     robotConnected: false,
     nodes: [],
   });
+  const [debugSnapshot, setDebugSnapshot] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [toasts, setToasts] = useState([]);
   const [hasLock, setHasLock] = useState(false);
@@ -64,6 +65,14 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
     priority: (data.priority ?? 'INFO').toUpperCase(),
     message: data.message ?? '',
     receivedAt: data.receivedAt ?? data.received_at ?? new Date().toISOString(),
+  }), []);
+
+  const normalizeDebugSnapshot = useCallback((data = {}) => ({
+    telemetry: data.telemetry ?? null,
+    lock: data.lock ?? null,
+    routing: data.routing ?? null,
+    connection: data.connection ?? null,
+    sensors: data.sensors ?? null,
   }), []);
 
   const dismissToast = useCallback((toastId) => {
@@ -144,7 +153,7 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
         setLastMessage(msg.data);
       }
     };
-  }, [normalizeNotification, normalizeStatusPayload]);
+  }, [normalizeDebugSnapshot, normalizeNotification, normalizeStatusPayload]);
 
   const connectEventsWs = useCallback(() => {
     const token = localStorage.getItem('token');
@@ -211,12 +220,17 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
           return;
         }
 
+        if (parsed?.event === 'debug_snapshot' && parsed?.data) {
+          setDebugSnapshot(normalizeDebugSnapshot(parsed.data));
+          return;
+        }
+
         setLastMessage(msg.data);
       } catch {
         setLastMessage(msg.data);
       }
     };
-  }, [normalizeNotification, normalizeStatusPayload]);
+  }, [normalizeDebugSnapshot, normalizeNotification, normalizeStatusPayload]);
 
   const disconnectWs = useCallback(() => {
     if (wsRef.current) {
@@ -394,6 +408,7 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
       eventsWsError,
       lastMessage,
       statusData,
+      debugSnapshot,
       nodes: statusData.nodes,
       notifications,
       toasts,
@@ -417,6 +432,7 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
       eventsWsError,
       lastMessage,
       statusData,
+      debugSnapshot,
       notifications,
       toasts,
       dismissToast,
