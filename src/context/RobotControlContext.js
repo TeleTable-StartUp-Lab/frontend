@@ -17,6 +17,7 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
   const wsRef = useRef(null);
   const eventsWsRef = useRef(null);
   const debugPollIntervalRef = useRef(null);
+  const debugRequestInFlightRef = useRef(false);
   const [wsStatus, setWsStatus] = useState('disconnected');
   const [wsError, setWsError] = useState('');
   const [eventsWsStatus, setEventsWsStatus] = useState('disconnected');
@@ -79,6 +80,11 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
   }), []);
 
   const fetchDebugSnapshot = useCallback(async () => {
+    if (debugRequestInFlightRef.current) {
+      return null;
+    }
+
+    debugRequestInFlightRef.current = true;
     try {
       const response = await api.get('/robot/debug');
       setDebugSnapshot(normalizeDebugSnapshot(response.data));
@@ -89,6 +95,8 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
       setDebugStatus('error');
       setDebugError(error?.response?.data?.error || error?.message || 'Failed to load debug snapshot');
       throw error;
+    } finally {
+      debugRequestInFlightRef.current = false;
     }
   }, [normalizeDebugSnapshot]);
 
@@ -97,6 +105,7 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
       window.clearInterval(debugPollIntervalRef.current);
       debugPollIntervalRef.current = null;
     }
+    debugRequestInFlightRef.current = false;
     setDebugStatus('idle');
   }, []);
 
