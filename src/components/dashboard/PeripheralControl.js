@@ -33,6 +33,7 @@ const PeripheralControl = ({ onClose }) => {
   const [ledEnabled, setLedEnabled] = useState(true);
   const [ledColor, setLedColor] = useState('#ffb450');
   const [brightness, setBrightness] = useState(40);
+  const [ledMode, setLedMode] = useState('static');
   const [volume, setVolume] = useState(0.3);
   const [beepHz, setBeepHz] = useState(880);
   const [beepMs, setBeepMs] = useState(150);
@@ -55,6 +56,7 @@ const PeripheralControl = ({ onClose }) => {
     const ok = sendCommand({
       command: 'LED',
       enabled: ledEnabled,
+      mode: ledMode,
       r,
       g,
       b,
@@ -135,6 +137,19 @@ const PeripheralControl = ({ onClose }) => {
                 onChange={(e) => setLedColor(e.target.value)}
                 className="w-full h-10 rounded border border-white/10 bg-dark-900"
               />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs text-gray-400">Mode</label>
+              <select
+                value={ledMode}
+                onChange={(e) => setLedMode(e.target.value)}
+                className="w-full h-10 rounded border border-white/10 bg-dark-900 text-white px-3 text-xs"
+              >
+                <option value="static">Static</option>
+                <option value="breathing">Breathing</option>
+                <option value="loop">Loop</option>
+                <option value="rainbow">Rainbow</option>
+              </select>
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs text-gray-400">
