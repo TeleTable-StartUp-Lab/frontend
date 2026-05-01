@@ -29,7 +29,18 @@ const hexToRgb = (hex) => {
 };
 
 const PeripheralControl = ({ onClose }) => {
-  const { wsStatus, sendCommand } = useRobotControl();
+  const {
+    wsStatus,
+    sendCommand,
+    audioFile,
+    audioFileName,
+    audioStreamMessage,
+    audioStreamProgress,
+    isAudioStreaming,
+    selectAudioFile,
+    startAudioStream,
+    stopAudioStream,
+  } = useRobotControl();
   const [ledEnabled, setLedEnabled] = useState(true);
   const [ledColor, setLedColor] = useState('#ffb450');
   const [brightness, setBrightness] = useState(40);
@@ -81,6 +92,7 @@ const PeripheralControl = ({ onClose }) => {
     });
     setFeedback(ok ? 'Beep command sent' : 'WebSocket not connected');
   };
+
 
   return (
     <div className="w-full max-w-5xl max-h-[85vh] overflow-y-auto glass-panel rounded-2xl border border-white/10 shadow-2xl" onMouseDown={(event) => event.stopPropagation()}>
@@ -202,6 +214,47 @@ const PeripheralControl = ({ onClose }) => {
             >
               <span>Set Volume</span>
             </button>
+            <div className="pt-2 border-t border-white/10 space-y-3">
+              <div className="space-y-1">
+                <label className="text-xs text-gray-400">Stream audio file</label>
+                <input
+                  type="file"
+                  onChange={(event) => {
+                    const nextFile = event.target.files?.[0] || null;
+                    selectAudioFile(nextFile);
+                  }}
+                  className="w-full text-xs text-gray-200 file:mr-3 file:rounded file:border-0 file:bg-white/10 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-white hover:file:bg-white/20"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={startAudioStream}
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-primary text-dark-900 font-semibold text-xs hover:bg-primary-hover transition-colors"
+                  disabled={wsStatus !== 'connected' || !audioFile || isAudioStreaming}
+                >
+                  <span>{isAudioStreaming ? 'Streaming...' : 'Play File'}</span>
+                </button>
+                <button
+                  onClick={stopAudioStream}
+                  className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-white/10 text-white font-semibold text-xs border border-white/20 hover:bg-white/20 transition-colors"
+                  disabled={!isAudioStreaming}
+                >
+                  <span>Stop</span>
+                </button>
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-[11px] text-gray-400">
+                  <span>{audioStreamMessage || audioFileName || 'No file selected'}</span>
+                  <span className="font-mono text-white">{audioStreamProgress}%</span>
+                </div>
+                <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                  <div
+                    className="h-full bg-secondary transition-all"
+                    style={{ width: `${audioStreamProgress}%` }}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="rounded-xl border border-white/10 bg-white/5 p-4 space-y-4">

@@ -4,6 +4,9 @@ import { useAuth } from './AuthContext';
 
 const RobotControlContext = createContext(null);
 const TOAST_DURATION_MS = 5000;
+const AUDIO_SAMPLE_RATE_HZ = 16000;
+const AUDIO_CHUNK_SAMPLES = 320;
+const AUDIO_CHUNK_DELAY_MS = 20;
 
 const getBaseUrl = () => api.defaults.baseURL || process.env.REACT_APP_API_URL || 'http://localhost:3003';
 
@@ -40,8 +43,14 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
   const [notifications, setNotifications] = useState([]);
   const [toasts, setToasts] = useState([]);
   const [hasLock, setHasLock] = useState(false);
+  const [audioFile, setAudioFile] = useState(null);
+  const [audioFileName, setAudioFileName] = useState('');
+  const [audioStreamMessage, setAudioStreamMessage] = useState('No file selected');
+  const [audioStreamProgress, setAudioStreamProgress] = useState(0);
+  const [isAudioStreaming, setIsAudioStreaming] = useState(false);
   const hasLockRef = useRef(false);
   const canManageDriveRef = useRef(false);
+  const audioAbortRef = useRef(null);
   const canManageDrive = user?.role === 'Admin' || user?.role === 'Operator';
 
   useEffect(() => {
@@ -323,6 +332,164 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
     return true;
   }, []);
 
+  const sendBinary = useCallback((data) => {
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+      return false;
+    }
+    wsRef.current.send(data);
+    return true;
+  }, []);
+
+  const selectAudioFile = useCallback((file) => {
+    setAudioFile(file || null);
+    setAudioFileName(file?.name || '');
+    setAudioStreamProgress(0);
+    setAudioStreamMessage(file?.name || 'No file selected');
+  }, []);
+
+  const downmixToMono = useCallback((audioBuffer, audioContext) => {
+    if (audioBuffer.numberOfChannels === 1) {
+      return audioBuffer;
+    }
+
+    const mono = audioContext.createBuffer(1, audioBuffer.length, audioBuffer.sampleRate);
+    const monoData = mono.getChannelData(0);
+    for (let channel = 0; channel < audioBuffer.numberOfChannels; channel += 1) {
+      const channelData = audioBuffer.getChannelData(channel);
+      for (let i = 0; i < channelData.length; i += 1) {
+        monoData[i] += channelData[i] / audioBuffer.numberOfChannels;
+      }
+    }
+
+    return mono;
+  }, []);
+
+  const decodeToPcm = useCallback(async (file) => {
+    const arrayBuffer = await file.arrayBuffer();
+    const AudioContextConstructor = window.AudioContext || window.webkitAudioContext;
+    const OfflineAudioContextConstructor = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    if (!AudioContextConstructor || !OfflineAudioContextConstructor) {
+      throw new Error('Web Audio API not supported in this browser');
+    }
+
+    const audioContext = new AudioContextConstructor();
+    const decoded = await audioContext.decodeAudioData(arrayBuffer);
+    const monoBuffer = downmixToMono(decoded, audioContext);
+
+    const offline = new OfflineAudioContextConstructor(
+      1,
+      Math.ceil(monoBuffer.duration * AUDIO_SAMPLE_RATE_HZ),
+      AUDIO_SAMPLE_RATE_HZ
+    );
+
+    const source = offline.createBufferSource();
+    source.buffer = monoBuffer;
+    source.connect(offline.destination);
+    source.start(0);
+
+    const rendered = await offline.startRendering();
+    await audioContext.close();
+
+    const floatData = rendered.getChannelData(0);
+    const pcm = new Int16Array(floatData.length);
+    for (let i = 0; i < floatData.length; i += 1) {
+      const sample = Math.max(-1, Math.min(1, floatData[i]));
+      pcm[i] = Math.round(sample * 32767);
+    }
+
+    return pcm;
+  }, [downmixToMono]);
+
+  const streamPcm = useCallback(async (pcmData, signal) => {
+    const totalSamples = pcmData.length;
+    let sentSamples = 0;
+
+    while (sentSamples < totalSamples) {
+      if (signal.aborted) {
+        break;
+      }
+
+      const end = Math.min(sentSamples + AUDIO_CHUNK_SAMPLES, totalSamples);
+      const chunk = pcmData.subarray(sentSamples, end);
+      const buffer = chunk.buffer.slice(chunk.byteOffset, chunk.byteOffset + chunk.byteLength);
+      const ok = sendBinary(buffer);
+      if (!ok) {
+        throw new Error('WebSocket not connected');
+      }
+
+      sentSamples = end;
+      setAudioStreamProgress(Math.round((sentSamples / totalSamples) * 100));
+
+      await new Promise((resolve) => setTimeout(resolve, AUDIO_CHUNK_DELAY_MS));
+    }
+  }, [sendBinary]);
+
+  const stopAudioStream = useCallback(() => {
+    if (audioAbortRef.current) {
+      audioAbortRef.current.abort();
+      audioAbortRef.current = null;
+    }
+    sendCommand({ command: 'AUDIO_STREAM_STOP' });
+    setIsAudioStreaming(false);
+    setAudioStreamMessage('Stop sent');
+  }, [sendCommand]);
+
+  const startAudioStream = useCallback(async () => {
+    if (!audioFile) {
+      setAudioStreamMessage('Choose an audio file first');
+      return;
+    }
+
+    if (wsStatus !== 'connected') {
+      setAudioStreamMessage('WebSocket not connected');
+      return;
+    }
+
+    if (isAudioStreaming) {
+      return;
+    }
+
+    const abortController = new AbortController();
+    audioAbortRef.current = abortController;
+    setIsAudioStreaming(true);
+    setAudioStreamProgress(0);
+    setAudioStreamMessage('Decoding audio...');
+
+    let started = false;
+
+    try {
+      const pcmData = await decodeToPcm(audioFile);
+      if (abortController.signal.aborted) {
+        return;
+      }
+
+      const ok = sendCommand({
+        command: 'AUDIO_STREAM_START',
+        sample_rate_hz: AUDIO_SAMPLE_RATE_HZ,
+        channels: 1,
+        bits_per_sample: 16,
+        little_endian: true,
+      });
+      if (!ok) {
+        throw new Error('WebSocket not connected');
+      }
+
+      started = true;
+      setAudioStreamMessage('Streaming audio...');
+      await streamPcm(pcmData, abortController.signal);
+      if (!abortController.signal.aborted) {
+        setAudioStreamMessage('Stream complete');
+      }
+    } catch (error) {
+      setAudioStreamMessage(error?.message || 'Stream failed');
+    } finally {
+      if (started) {
+        sendCommand({ command: 'AUDIO_STREAM_STOP' });
+      }
+      setIsAudioStreaming(false);
+    }
+  }, [audioFile, decodeToPcm, isAudioStreaming, sendCommand, streamPcm, wsStatus]);
+
   const acquireLock = useCallback(async () => {
     if (!canManageDriveRef.current) {
       return { status: 'error', message: 'Insufficient permissions to acquire lock' };
@@ -497,6 +664,12 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
     };
   }, []);
 
+  useEffect(() => {
+    if (wsStatus !== 'connected' && isAudioStreaming) {
+      stopAudioStream();
+    }
+  }, [isAudioStreaming, stopAudioStream, wsStatus]);
+
   const nodeLabelMap = useMemo(() => {
     const entries = statusData.nodes.map((node) => [node.id, node.label]);
     return new Map(entries);
@@ -534,6 +707,15 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
       disconnectWs,
       disconnectEventsWs,
       sendCommand,
+      sendBinary,
+      audioFile,
+      audioFileName,
+      audioStreamMessage,
+      audioStreamProgress,
+      isAudioStreaming,
+      selectAudioFile,
+      startAudioStream,
+      stopAudioStream,
       acquireLock,
       releaseLock,
       getNodes,
@@ -562,6 +744,15 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
       disconnectWs,
       disconnectEventsWs,
       sendCommand,
+      sendBinary,
+      audioFile,
+      audioFileName,
+      audioStreamMessage,
+      audioStreamProgress,
+      isAudioStreaming,
+      selectAudioFile,
+      startAudioStream,
+      stopAudioStream,
       acquireLock,
       releaseLock,
       getNodes,

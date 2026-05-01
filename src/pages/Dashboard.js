@@ -11,32 +11,10 @@ import QueueControl from './QueueControl';
 import PeripheralControl from '../components/dashboard/PeripheralControl';
 import RobotNotificationsPanel from '../components/dashboard/RobotNotificationsPanel';
 
-const Dashboard = () => {
-    const { user } = useAuth();
-    const isViewer = user?.role === 'Viewer';
-    const isAdmin = user?.role === 'Admin';
+const DashboardContent = ({ isAdmin }) => {
     const [isQueueOpen, setIsQueueOpen] = useState(false);
     const [isPeripheralsOpen, setIsPeripheralsOpen] = useState(false);
     const [isDebugOpen, setIsDebugOpen] = useState(false);
-
-    useEffect(() => {
-        document.title = 'TeleTable - Dashboard';
-    }, []);
-
-    if (isViewer) {
-        return (
-            <RobotControlProvider autoConnect>
-                <div className="w-full">
-                    <div className="w-full">
-                        <div className="flex justify-end mb-3">
-                            <RobotNotificationsPanel />
-                        </div>
-                        <Telemetry />
-                    </div>
-                </div>
-            </RobotControlProvider>
-        );
-    }
 
     const canUseDom = typeof document !== 'undefined';
     const queueModal = isQueueOpen && canUseDom
@@ -96,12 +74,13 @@ const Dashboard = () => {
         : null;
 
     return (
-        <RobotControlProvider autoConnect>
-            <div className="space-y-4 md:space-y-8">
+        <div className="space-y-4 md:space-y-8">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
-                    Control <span className="text-primary">Dashboard</span>
-                </h1>
+                <div className="space-y-2">
+                    <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
+                        Control <span className="text-primary">Dashboard</span>
+                    </h1>
+                </div>
                 <div className="flex items-center justify-between md:justify-end gap-2 md:gap-3">
                     <RobotNotificationsPanel />
                     {isAdmin && (
@@ -158,7 +137,37 @@ const Dashboard = () => {
             {queueModal}
             {peripheralsModal}
             {debugModal}
-            </div>
+        </div>
+    );
+};
+
+const Dashboard = () => {
+    const { user } = useAuth();
+    const isViewer = user?.role === 'Viewer';
+    const isAdmin = user?.role === 'Admin';
+
+    useEffect(() => {
+        document.title = 'TeleTable - Dashboard';
+    }, []);
+
+    if (isViewer) {
+        return (
+            <RobotControlProvider autoConnect>
+                <div className="w-full">
+                    <div className="w-full">
+                        <div className="flex justify-end mb-3">
+                            <RobotNotificationsPanel />
+                        </div>
+                        <Telemetry />
+                    </div>
+                </div>
+            </RobotControlProvider>
+        );
+    }
+
+    return (
+        <RobotControlProvider autoConnect>
+            <DashboardContent isAdmin={isAdmin} />
         </RobotControlProvider>
     );
 };
