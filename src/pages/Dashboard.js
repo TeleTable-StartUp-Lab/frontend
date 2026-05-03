@@ -10,6 +10,7 @@ import { Bug, ListOrdered, SlidersHorizontal, X } from 'lucide-react';
 import QueueControl from './QueueControl';
 import PeripheralControl from '../components/dashboard/PeripheralControl';
 import RobotNotificationsPanel from '../components/dashboard/RobotNotificationsPanel';
+import RobotMap from '../components/dashboard/RobotMap';
 
 const DashboardContent = ({ isAdmin }) => {
     const [isQueueOpen, setIsQueueOpen] = useState(false);
@@ -126,6 +127,9 @@ const DashboardContent = ({ isAdmin }) => {
                 {/* Mobile: Status & Auto Control danach, Desktop: Linke Spalte */}
                 <div className="lg:col-span-7 lg:order-1 space-y-4 md:space-y-6">
                     <div>
+                        <RobotMap />
+                    </div>
+                    <div>
                         <Telemetry />
                     </div>
                     <div>
@@ -153,11 +157,12 @@ const Dashboard = () => {
     if (isViewer) {
         return (
             <RobotControlProvider autoConnect>
-                <div className="w-full">
-                    <div className="w-full">
-                        <div className="flex justify-end mb-3">
-                            <RobotNotificationsPanel />
-                        </div>
+                <div className="w-full space-y-4 md:space-y-6">
+                    <div className="flex justify-end">
+                        <RobotNotificationsPanel />
+                    </div>
+                    <RobotMap />
+                    <div>
                         <Telemetry />
                     </div>
                 </div>
