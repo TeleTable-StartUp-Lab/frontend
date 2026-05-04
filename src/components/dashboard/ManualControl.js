@@ -5,6 +5,10 @@ import { useAuth } from '../../context/AuthContext';
 
 const DRIVE_COMMAND_INTERVAL_MS = 75;
 const DRIVE_COMMAND_EPSILON = 0.02;
+const DEFAULT_MANUAL_SPEED_CAP_PERCENT = 60;
+const MIN_MANUAL_SPEED_CAP_PERCENT = 10;
+const MAX_MANUAL_SPEED_CAP_PERCENT = 100;
+const MANUAL_SPEED_CAP_STEP = 5;
 
 const ManualControl = () => {
   const { wsStatus, wsError, lastMessage, connectWs, disconnectWs, sendCommand, acquireLock, releaseLock } = useRobotControl();
@@ -14,12 +18,14 @@ const ManualControl = () => {
   const [lockError, setLockError] = useState('');
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
+  const [manualSpeedCap, setManualSpeedCap] = useState(DEFAULT_MANUAL_SPEED_CAP_PERCENT);
   const constraintsRef = useRef(null);
   const lastSendRef = useRef(0);
   const queuedCommandRef = useRef(null);
   const lastCommandRef = useRef(null);
   const flushTimeoutRef = useRef(null);
   const pressedKeysRef = useRef(new Set());
+  const lastSentSpeedCapRef = useRef(null);
   const maxLinear = 1.0;
   const maxAngular = 2.0;
 
@@ -122,6 +128,26 @@ const ManualControl = () => {
   useEffect(() => () => {
     clearScheduledFlush();
   }, [clearScheduledFlush]);
+
+  useEffect(() => {
+    if (wsStatus !== 'connected') {
+      lastSentSpeedCapRef.current = null;
+      return;
+    }
+
+    if (lastSentSpeedCapRef.current === manualSpeedCap) {
+      return;
+    }
+
+    const sent = sendCommand({
+      command: 'SET_MANUAL_SPEED_CAP',
+      max_speed_percent: manualSpeedCap,
+    });
+
+    if (sent) {
+      lastSentSpeedCapRef.current = manualSpeedCap;
+    }
+  }, [manualSpeedCap, sendCommand, wsStatus]);
 
   const updateFromOffset = useCallback((x, y) => {
     const threshold = 8;
@@ -287,6 +313,10 @@ const ManualControl = () => {
     }
   };
 
+  const handleManualSpeedCapChange = useCallback((event) => {
+    setManualSpeedCap(Number(event.target.value));
+  }, []);
+
   const wsBadge = useMemo(() => {
     switch (wsStatus) {
       case 'connected':
@@ -371,6 +401,28 @@ const ManualControl = () => {
           )}
         </div>
       )}
+
+      <div className="mb-4 md:mb-6 rounded-xl border border-white/10 bg-dark-900/50 px-4 py-3">
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <label htmlFor="manual-speed-cap" className="text-xs font-medium uppercase tracking-[0.22em] text-gray-400">
+            Joystick Max Speed
+          </label>
+          <span className="text-sm font-mono text-primary">{manualSpeedCap}%</span>
+        </div>
+        <input
+          id="manual-speed-cap"
+          type="range"
+          min={MIN_MANUAL_SPEED_CAP_PERCENT}
+          max={MAX_MANUAL_SPEED_CAP_PERCENT}
+          step={MANUAL_SPEED_CAP_STEP}
+          value={manualSpeedCap}
+          onChange={handleManualSpeedCapChange}
+          className="h-2 w-full cursor-pointer appearance-none rounded-full bg-white/10 accent-primary"
+        />
+        <p className="mt-2 text-[11px] text-gray-500">
+          Caps joystick driving power on the robot. Full joystick still sends full input, but the robot limits output to this value.
+        </p>
+      </div>
 
       <div className="flex-grow flex items-center justify-center min-h-[280px] md:min-h-0">
         {/* Joystick Base */}
