@@ -48,9 +48,16 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
   const [audioStreamMessage, setAudioStreamMessage] = useState('No file selected');
   const [audioStreamProgress, setAudioStreamProgress] = useState(0);
   const [isAudioStreaming, setIsAudioStreaming] = useState(false);
+  const [isMicStreaming, setIsMicStreaming] = useState(false);
+  const [micStreamMessage, setMicStreamMessage] = useState('Microphone idle');
+  const [isTtsStreaming, setIsTtsStreaming] = useState(false);
+  const [ttsStreamMessage, setTtsStreamMessage] = useState('Robot voice idle');
+  const [ttsStreamProgress, setTtsStreamProgress] = useState(0);
   const hasLockRef = useRef(false);
   const canManageDriveRef = useRef(false);
   const audioAbortRef = useRef(null);
+  const ttsAbortRef = useRef(null);
+  const micStreamRef = useRef(null);
   const canManageDrive = user?.role === 'Admin' || user?.role === 'Operator';
 
   useEffect(() => {
@@ -424,6 +431,250 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
     }
   }, [sendBinary]);
 
+  const createLivePcmEncoder = useCallback((sourceSampleRate) => {
+    const resampleRatio = sourceSampleRate / AUDIO_SAMPLE_RATE_HZ;
+    let bufferedInput = new Float32Array(0);
+    let bufferedOutput = new Int16Array(0);
+
+    const downsampleChunk = (inputChunk) => {
+      const merged = new Float32Array(bufferedInput.length + inputChunk.length);
+      merged.set(bufferedInput, 0);
+      merged.set(inputChunk, bufferedInput.length);
+
+      if (sourceSampleRate === AUDIO_SAMPLE_RATE_HZ) {
+        const pcm = new Int16Array(merged.length);
+        for (let i = 0; i < merged.length; i += 1) {
+          const sample = Math.max(-1, Math.min(1, merged[i]));
+          pcm[i] = Math.round(sample * 32767);
+        }
+        bufferedInput = new Float32Array(0);
+        return pcm;
+      }
+
+      const outputLength = Math.floor(merged.length / resampleRatio);
+      if (outputLength <= 0) {
+        bufferedInput = merged;
+        return new Int16Array(0);
+      }
+
+      const pcm = new Int16Array(outputLength);
+      let offsetBuffer = 0;
+      for (let i = 0; i < outputLength; i += 1) {
+        const nextOffsetBuffer = Math.round((i + 1) * resampleRatio);
+        let accum = 0;
+        let count = 0;
+        for (let j = offsetBuffer; j < nextOffsetBuffer && j < merged.length; j += 1) {
+          accum += merged[j];
+          count += 1;
+        }
+        const sample = count ? accum / count : 0;
+        pcm[i] = Math.round(Math.max(-1, Math.min(1, sample)) * 32767);
+        offsetBuffer = nextOffsetBuffer;
+      }
+
+      bufferedInput = merged.slice(offsetBuffer);
+      return pcm;
+    };
+
+    return {
+      push(floatChunk) {
+        const nextPcm = downsampleChunk(floatChunk);
+        if (!nextPcm.length) {
+          return [];
+        }
+
+        const combined = new Int16Array(bufferedOutput.length + nextPcm.length);
+        combined.set(bufferedOutput, 0);
+        combined.set(nextPcm, bufferedOutput.length);
+
+        const chunks = [];
+        let offset = 0;
+        while (offset + AUDIO_CHUNK_SAMPLES <= combined.length) {
+          chunks.push(combined.slice(offset, offset + AUDIO_CHUNK_SAMPLES));
+          offset += AUDIO_CHUNK_SAMPLES;
+        }
+
+        bufferedOutput = combined.slice(offset);
+        return chunks;
+      },
+      flush() {
+        const tailPcm = downsampleChunk(new Float32Array(0));
+        if (tailPcm.length) {
+          const combined = new Int16Array(bufferedOutput.length + tailPcm.length);
+          combined.set(bufferedOutput, 0);
+          combined.set(tailPcm, bufferedOutput.length);
+          bufferedOutput = combined;
+        }
+
+        if (!bufferedOutput.length) {
+          return [];
+        }
+        const remainder = bufferedOutput;
+        bufferedOutput = new Int16Array(0);
+        return [remainder];
+      },
+    };
+  }, []);
+
+  const synthesizeRobotSpeech = useCallback((text) => {
+    const normalizedText = String(text || '')
+      .trim()
+      .toLowerCase()
+      .replace(/ä/g, 'ae')
+      .replace(/ö/g, 'oe')
+      .replace(/ü/g, 'ue')
+      .replace(/ß/g, 'ss');
+
+    if (!normalizedText) {
+      throw new Error('Enter text first');
+    }
+
+    const vowelFormants = {
+      a: [800, 1200],
+      e: [500, 1900],
+      i: [320, 2400],
+      o: [520, 900],
+      u: [350, 800],
+      y: [380, 1700],
+    };
+
+    const consonantShapes = {
+      b: { duration: 0.05, noise: 0.08, tone: 135 },
+      c: { duration: 0.06, noise: 0.28, tone: 150 },
+      d: { duration: 0.05, noise: 0.1, tone: 145 },
+      f: { duration: 0.055, noise: 0.34, tone: 180 },
+      g: { duration: 0.06, noise: 0.08, tone: 125 },
+      h: { duration: 0.05, noise: 0.2, tone: 160 },
+      j: { duration: 0.055, noise: 0.15, tone: 175 },
+      k: { duration: 0.05, noise: 0.24, tone: 150 },
+      l: { duration: 0.06, noise: 0.03, tone: 170 },
+      m: { duration: 0.07, noise: 0.02, tone: 120 },
+      n: { duration: 0.065, noise: 0.02, tone: 128 },
+      p: { duration: 0.045, noise: 0.28, tone: 160 },
+      q: { duration: 0.05, noise: 0.22, tone: 150 },
+      r: { duration: 0.06, noise: 0.04, tone: 155 },
+      s: { duration: 0.065, noise: 0.38, tone: 210 },
+      t: { duration: 0.045, noise: 0.26, tone: 185 },
+      v: { duration: 0.06, noise: 0.24, tone: 170 },
+      w: { duration: 0.06, noise: 0.08, tone: 145 },
+      x: { duration: 0.07, noise: 0.32, tone: 210 },
+      z: { duration: 0.065, noise: 0.26, tone: 195 },
+    };
+
+    const sampleRate = AUDIO_SAMPLE_RATE_HZ;
+    const segments = [];
+    let charIndex = 0;
+
+    const createSilence = (durationSec) => {
+      segments.push(new Float32Array(Math.max(1, Math.round(durationSec * sampleRate))));
+    };
+
+    const createSegment = (char, durationSec, generator) => {
+      const length = Math.max(1, Math.round(durationSec * sampleRate));
+      const segment = new Float32Array(length);
+      for (let i = 0; i < length; i += 1) {
+        const t = i / sampleRate;
+        const fade = Math.min(i / (length * 0.15), (length - i) / (length * 0.18), 1);
+        segment[i] = generator(t, fade);
+      }
+      segments.push(segment);
+      if (char !== ' ') {
+        createSilence(0.012);
+      }
+    };
+
+    for (const char of normalizedText) {
+      charIndex += 1;
+      if (char === ' ') {
+        createSilence(0.06);
+        continue;
+      }
+
+      if (/[.,!?;:]/.test(char)) {
+        createSilence(0.1);
+        continue;
+      }
+
+      if (vowelFormants[char]) {
+        const [f1, f2] = vowelFormants[char];
+        const fundamental = 105 + ((charIndex % 5) * 18);
+        createSegment(char, 0.11, (t, fade) => {
+          const saw = (
+            Math.sin(2 * Math.PI * fundamental * t)
+            + 0.5 * Math.sin(2 * Math.PI * fundamental * 2 * t)
+            + 0.25 * Math.sin(2 * Math.PI * fundamental * 3 * t)
+          ) / 1.75;
+          const formants = (
+            0.45 * Math.sin(2 * Math.PI * f1 * t)
+            + 0.28 * Math.sin(2 * Math.PI * f2 * t)
+          );
+          const ring = Math.sin(2 * Math.PI * (fundamental * 0.5) * t) * 0.2 + 0.8;
+          return fade * (0.42 * saw + 0.22 * formants * ring);
+        });
+        continue;
+      }
+
+      const shape = consonantShapes[char] || { duration: 0.05, noise: 0.18, tone: 165 };
+      createSegment(char, shape.duration, (t, fade) => {
+        const pulse = Math.sign(Math.sin(2 * Math.PI * shape.tone * t));
+        const metallic = Math.sin(2 * Math.PI * shape.tone * 2.4 * t);
+        const deterministicNoise = (
+          Math.sin(2 * Math.PI * (shape.tone * 7.3) * t)
+          + 0.5 * Math.sin(2 * Math.PI * (shape.tone * 11.1) * t)
+          + 0.33 * Math.sin(2 * Math.PI * (shape.tone * 13.7) * t)
+        ) / 1.83;
+        return fade * (0.18 * pulse + 0.12 * metallic + shape.noise * deterministicNoise);
+      });
+    }
+
+    const totalLength = segments.reduce((sum, segment) => sum + segment.length, 0);
+    const floatData = new Float32Array(totalLength);
+    let offset = 0;
+    segments.forEach((segment) => {
+      floatData.set(segment, offset);
+      offset += segment.length;
+    });
+
+    const pcm = new Int16Array(floatData.length);
+    for (let i = 0; i < floatData.length; i += 1) {
+      const sample = Math.max(-1, Math.min(1, floatData[i] * 1.6));
+      pcm[i] = Math.round(sample * 32767);
+    }
+
+    return pcm;
+  }, []);
+
+  const cleanupMicStream = useCallback(async ({ sendStop = true, message } = {}) => {
+    const activeMicStream = micStreamRef.current;
+    micStreamRef.current = null;
+
+    if (activeMicStream?.processor) {
+      activeMicStream.processor.onaudioprocess = null;
+      activeMicStream.processor.disconnect();
+    }
+
+    if (activeMicStream?.source) {
+      activeMicStream.source.disconnect();
+    }
+
+    if (activeMicStream?.mediaStream) {
+      activeMicStream.mediaStream.getTracks().forEach((track) => track.stop());
+    }
+
+    if (activeMicStream?.audioContext && activeMicStream.audioContext.state !== 'closed') {
+      await activeMicStream.audioContext.close().catch(() => {});
+    }
+
+    if (sendStop) {
+      sendCommand({ command: 'AUDIO_STREAM_STOP' });
+    }
+
+    setIsMicStreaming(false);
+    if (message) {
+      setMicStreamMessage(message);
+    }
+  }, [sendCommand]);
+
   const stopAudioStream = useCallback(() => {
     if (audioAbortRef.current) {
       audioAbortRef.current.abort();
@@ -432,6 +683,20 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
     sendCommand({ command: 'AUDIO_STREAM_STOP' });
     setIsAudioStreaming(false);
     setAudioStreamMessage('Stop sent');
+  }, [sendCommand]);
+
+  const stopMicrophoneStream = useCallback(() => {
+    cleanupMicStream({ sendStop: true, message: 'Microphone stopped' }).catch(() => {});
+  }, [cleanupMicStream]);
+
+  const stopTextToSpeechStream = useCallback(() => {
+    if (ttsAbortRef.current) {
+      ttsAbortRef.current.abort();
+      ttsAbortRef.current = null;
+    }
+    sendCommand({ command: 'AUDIO_STREAM_STOP' });
+    setIsTtsStreaming(false);
+    setTtsStreamMessage('Robot voice stopped');
   }, [sendCommand]);
 
   const startAudioStream = useCallback(async () => {
@@ -445,7 +710,7 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
       return;
     }
 
-    if (isAudioStreaming) {
+    if (isAudioStreaming || isMicStreaming || isTtsStreaming) {
       return;
     }
 
@@ -488,7 +753,183 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
       }
       setIsAudioStreaming(false);
     }
-  }, [audioFile, decodeToPcm, isAudioStreaming, sendCommand, streamPcm, wsStatus]);
+  }, [audioFile, decodeToPcm, isAudioStreaming, isMicStreaming, isTtsStreaming, sendCommand, streamPcm, wsStatus]);
+
+  const startMicrophoneStream = useCallback(async () => {
+    if (wsStatus !== 'connected') {
+      setMicStreamMessage('WebSocket not connected');
+      return;
+    }
+
+    if (isAudioStreaming || isMicStreaming || isTtsStreaming) {
+      return;
+    }
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setMicStreamMessage('Microphone capture not supported');
+      return;
+    }
+
+    const AudioContextConstructor = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextConstructor) {
+      setMicStreamMessage('Web Audio API not supported in this browser');
+      return;
+    }
+
+    setAudioStreamProgress(0);
+    setMicStreamMessage('Requesting microphone access...');
+
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          channelCount: 1,
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+        },
+      });
+
+      const ok = sendCommand({
+        command: 'AUDIO_STREAM_START',
+        sample_rate_hz: AUDIO_SAMPLE_RATE_HZ,
+        channels: 1,
+        bits_per_sample: 16,
+        little_endian: true,
+      });
+      if (!ok) {
+        mediaStream.getTracks().forEach((track) => track.stop());
+        throw new Error('WebSocket not connected');
+      }
+
+      const audioContext = new AudioContextConstructor();
+      await audioContext.resume();
+
+      const source = audioContext.createMediaStreamSource(mediaStream);
+      const processor = audioContext.createScriptProcessor(4096, 1, 1);
+      const encodePcm = createLivePcmEncoder(audioContext.sampleRate);
+
+      processor.onaudioprocess = (event) => {
+        const input = event.inputBuffer.getChannelData(0);
+        const chunks = encodePcm.push(input);
+
+        for (const chunk of chunks) {
+          const buffer = chunk.buffer.slice(chunk.byteOffset, chunk.byteOffset + chunk.byteLength);
+          const sent = sendBinary(buffer);
+          if (!sent) {
+            cleanupMicStream({ sendStop: true, message: 'WebSocket not connected' }).catch(() => {});
+            break;
+          }
+        }
+      };
+
+      source.connect(processor);
+      processor.connect(audioContext.destination);
+
+      micStreamRef.current = {
+        mediaStream,
+        audioContext,
+        source,
+        processor,
+      };
+
+      setIsMicStreaming(true);
+      setMicStreamMessage('Streaming microphone...');
+
+      const track = mediaStream.getAudioTracks()[0];
+      if (track) {
+        track.onended = () => {
+          const tailChunks = encodePcm.flush();
+          for (const chunk of tailChunks) {
+            const buffer = chunk.buffer.slice(chunk.byteOffset, chunk.byteOffset + chunk.byteLength);
+            sendBinary(buffer);
+          }
+          cleanupMicStream({ sendStop: true, message: 'Microphone stopped' }).catch(() => {});
+        };
+      }
+    } catch (error) {
+      setIsMicStreaming(false);
+      setMicStreamMessage(error?.message || 'Microphone stream failed');
+    }
+  }, [cleanupMicStream, createLivePcmEncoder, isAudioStreaming, isMicStreaming, isTtsStreaming, sendBinary, sendCommand, wsStatus]);
+
+  const startTextToSpeechStream = useCallback(async (text) => {
+    if (wsStatus !== 'connected') {
+      setTtsStreamMessage('WebSocket not connected');
+      return;
+    }
+
+    if (isAudioStreaming || isMicStreaming || isTtsStreaming) {
+      return;
+    }
+
+    const normalizedText = String(text || '').trim();
+    if (!normalizedText) {
+      setTtsStreamMessage('Enter text first');
+      return;
+    }
+
+    const abortController = new AbortController();
+    ttsAbortRef.current = abortController;
+    setIsTtsStreaming(true);
+    setTtsStreamProgress(0);
+    setTtsStreamMessage('Synthesizing robot voice...');
+
+    let started = false;
+
+    try {
+      const pcmData = synthesizeRobotSpeech(normalizedText);
+      if (abortController.signal.aborted) {
+        return;
+      }
+
+      const ok = sendCommand({
+        command: 'AUDIO_STREAM_START',
+        sample_rate_hz: AUDIO_SAMPLE_RATE_HZ,
+        channels: 1,
+        bits_per_sample: 16,
+        little_endian: true,
+      });
+      if (!ok) {
+        throw new Error('WebSocket not connected');
+      }
+
+      started = true;
+      setTtsStreamMessage('Streaming robot voice...');
+
+      const totalSamples = pcmData.length;
+      let sentSamples = 0;
+
+      while (sentSamples < totalSamples) {
+        if (abortController.signal.aborted) {
+          break;
+        }
+
+        const end = Math.min(sentSamples + AUDIO_CHUNK_SAMPLES, totalSamples);
+        const chunk = pcmData.subarray(sentSamples, end);
+        const buffer = chunk.buffer.slice(chunk.byteOffset, chunk.byteOffset + chunk.byteLength);
+        const sent = sendBinary(buffer);
+        if (!sent) {
+          throw new Error('WebSocket not connected');
+        }
+
+        sentSamples = end;
+        setTtsStreamProgress(Math.round((sentSamples / totalSamples) * 100));
+        await new Promise((resolve) => setTimeout(resolve, AUDIO_CHUNK_DELAY_MS));
+      }
+
+      if (!abortController.signal.aborted) {
+        setTtsStreamMessage('Robot voice sent');
+      }
+    } catch (error) {
+      setTtsStreamMessage(error?.message || 'Robot voice failed');
+    } finally {
+      if (started) {
+        sendCommand({ command: 'AUDIO_STREAM_STOP' });
+      }
+      ttsAbortRef.current = null;
+      setIsTtsStreaming(false);
+    }
+  }, [isAudioStreaming, isMicStreaming, isTtsStreaming, sendBinary, sendCommand, synthesizeRobotSpeech, wsStatus]);
 
   const acquireLock = useCallback(async () => {
     if (!canManageDriveRef.current) {
@@ -580,11 +1021,16 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
       if (localStorage.getItem('token') && canManageDriveRef.current && hasLockRef.current) {
         releaseLock().catch(() => {});
       }
+      if (ttsAbortRef.current) {
+        ttsAbortRef.current.abort();
+        ttsAbortRef.current = null;
+      }
+      cleanupMicStream({ sendStop: false }).catch(() => {});
       disconnectWs();
       disconnectEventsWs();
       stopDebugPolling();
     };
-  }, [autoConnect, connectEventsWs, disconnectEventsWs, disconnectWs, releaseLock, stopDebugPolling]);
+  }, [autoConnect, cleanupMicStream, connectEventsWs, disconnectEventsWs, disconnectWs, releaseLock, stopDebugPolling]);
 
   useEffect(() => {
     if (!localStorage.getItem('token')) {
@@ -665,10 +1111,18 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
   }, []);
 
   useEffect(() => {
-    if (wsStatus !== 'connected' && isAudioStreaming) {
-      stopAudioStream();
+    if (wsStatus !== 'connected') {
+      if (isAudioStreaming) {
+        stopAudioStream();
+      }
+      if (isMicStreaming) {
+        stopMicrophoneStream();
+      }
+      if (isTtsStreaming) {
+        stopTextToSpeechStream();
+      }
     }
-  }, [isAudioStreaming, stopAudioStream, wsStatus]);
+  }, [isAudioStreaming, isMicStreaming, isTtsStreaming, stopAudioStream, stopMicrophoneStream, stopTextToSpeechStream, wsStatus]);
 
   const nodeLabelMap = useMemo(() => {
     const entries = statusData.nodes.map((node) => [node.id, node.label]);
@@ -713,9 +1167,18 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
       audioStreamMessage,
       audioStreamProgress,
       isAudioStreaming,
+      isMicStreaming,
+      micStreamMessage,
+      isTtsStreaming,
+      ttsStreamMessage,
+      ttsStreamProgress,
       selectAudioFile,
       startAudioStream,
       stopAudioStream,
+      startMicrophoneStream,
+      stopMicrophoneStream,
+      startTextToSpeechStream,
+      stopTextToSpeechStream,
       acquireLock,
       releaseLock,
       getNodes,
@@ -750,9 +1213,18 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
       audioStreamMessage,
       audioStreamProgress,
       isAudioStreaming,
+      isMicStreaming,
+      micStreamMessage,
+      isTtsStreaming,
+      ttsStreamMessage,
+      ttsStreamProgress,
       selectAudioFile,
       startAudioStream,
       stopAudioStream,
+      startMicrophoneStream,
+      stopMicrophoneStream,
+      startTextToSpeechStream,
+      stopTextToSpeechStream,
       acquireLock,
       releaseLock,
       getNodes,

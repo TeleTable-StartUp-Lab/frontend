@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Lightbulb, Megaphone, SlidersHorizontal, Volume2, X } from 'lucide-react';
+import { Lightbulb, Megaphone, Mic, SlidersHorizontal, Square, Volume2, X } from 'lucide-react';
 import { useRobotControl } from '../../context/RobotControlContext';
 
 const wsBadgeClass = (status) => {
@@ -37,9 +37,18 @@ const PeripheralControl = ({ onClose }) => {
     audioStreamMessage,
     audioStreamProgress,
     isAudioStreaming,
+    isMicStreaming,
+    micStreamMessage,
+    isTtsStreaming,
+    ttsStreamMessage,
+    ttsStreamProgress,
     selectAudioFile,
     startAudioStream,
     stopAudioStream,
+    startMicrophoneStream,
+    stopMicrophoneStream,
+    startTextToSpeechStream,
+    stopTextToSpeechStream,
   } = useRobotControl();
   const [ledEnabled, setLedEnabled] = useState(true);
   const [ledColor, setLedColor] = useState('#ffb450');
@@ -49,6 +58,8 @@ const PeripheralControl = ({ onClose }) => {
   const [beepHz, setBeepHz] = useState(880);
   const [beepMs, setBeepMs] = useState(150);
   const [feedback, setFeedback] = useState('');
+  const [ttsText, setTtsText] = useState('');
+  const isAnyAudioStreamActive = isAudioStreaming || isMicStreaming || isTtsStreaming;
 
   const ledPreviewStyle = useMemo(
     () => ({
@@ -91,6 +102,10 @@ const PeripheralControl = ({ onClose }) => {
       ms: Math.max(10, Math.min(5000, Math.round(Number(beepMs)))) || 0,
     });
     setFeedback(ok ? 'Beep command sent' : 'WebSocket not connected');
+  };
+
+  const handleTextToSpeech = () => {
+    startTextToSpeechStream(ttsText);
   };
 
 
@@ -230,7 +245,7 @@ const PeripheralControl = ({ onClose }) => {
                 <button
                   onClick={startAudioStream}
                   className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-primary text-dark-900 font-semibold text-xs hover:bg-primary-hover transition-colors"
-                  disabled={wsStatus !== 'connected' || !audioFile || isAudioStreaming}
+                  disabled={wsStatus !== 'connected' || !audioFile || isAnyAudioStreamActive}
                 >
                   <span>{isAudioStreaming ? 'Streaming...' : 'Play File'}</span>
                 </button>
@@ -252,6 +267,35 @@ const PeripheralControl = ({ onClose }) => {
                     className="h-full bg-secondary transition-all"
                     style={{ width: `${audioStreamProgress}%` }}
                   />
+                </div>
+              </div>
+              <div className="pt-3 border-t border-white/10 space-y-3">
+                <div className="space-y-1">
+                  <label className="text-xs text-gray-400">Stream microphone</label>
+                  <p className="text-[11px] text-gray-500">
+                    Sends live mic audio directly to the ESP in real time.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={startMicrophoneStream}
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-danger text-white font-semibold text-xs hover:brightness-110 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                    disabled={wsStatus !== 'connected' || isAnyAudioStreamActive}
+                  >
+                    <Mic className="w-4 h-4" />
+                    <span>{isMicStreaming ? 'Recording...' : 'Record Mic'}</span>
+                  </button>
+                  <button
+                    onClick={stopMicrophoneStream}
+                    className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-white/10 text-white font-semibold text-xs border border-white/20 hover:bg-white/20 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                    disabled={!isMicStreaming}
+                  >
+                    <Square className="w-4 h-4" />
+                    <span>Stop</span>
+                  </button>
+                </div>
+                <div className="text-[11px] text-gray-400">
+                  {micStreamMessage}
                 </div>
               </div>
             </div>
@@ -295,10 +339,54 @@ const PeripheralControl = ({ onClose }) => {
             <button
               onClick={handleBeep}
               className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-white/10 text-white font-semibold text-xs border border-white/20 hover:bg-white/20 transition-colors"
-              disabled={wsStatus !== 'connected'}
+              disabled={wsStatus !== 'connected' || isAnyAudioStreamActive}
             >
               <span>Play Test Beep</span>
             </button>
+            <div className="pt-3 border-t border-white/10 space-y-3">
+              <div className="space-y-1">
+                <label className="text-xs text-gray-400">Robot speech text</label>
+                <textarea
+                  value={ttsText}
+                  onChange={(event) => setTtsText(event.target.value)}
+                  placeholder="Type what the robot should say..."
+                  rows={4}
+                  className="w-full rounded-lg border border-white/10 bg-dark-900 px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-primary/50 resize-none"
+                />
+                <p className="text-[11px] text-gray-500">
+                  Synthesizes a robotic voice in the browser, then streams it to the ESP.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleTextToSpeech}
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-primary text-dark-900 font-semibold text-xs hover:bg-primary-hover transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                  disabled={wsStatus !== 'connected' || !ttsText.trim() || isAnyAudioStreamActive}
+                >
+                  <span>{isTtsStreaming ? 'Sending Voice...' : 'Speak Text'}</span>
+                </button>
+                <button
+                  onClick={stopTextToSpeechStream}
+                  className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-white/10 text-white font-semibold text-xs border border-white/20 hover:bg-white/20 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                  disabled={!isTtsStreaming}
+                >
+                  <Square className="w-4 h-4" />
+                  <span>Stop</span>
+                </button>
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-[11px] text-gray-400">
+                  <span>{ttsStreamMessage}</span>
+                  <span className="font-mono text-white">{ttsStreamProgress}%</span>
+                </div>
+                <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                  <div
+                    className="h-full bg-primary transition-all"
+                    style={{ width: `${ttsStreamProgress}%` }}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
