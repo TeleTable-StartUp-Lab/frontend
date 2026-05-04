@@ -9,6 +9,18 @@ const DEFAULT_MANUAL_SPEED_CAP_PERCENT = 60;
 const MIN_MANUAL_SPEED_CAP_PERCENT = 10;
 const MAX_MANUAL_SPEED_CAP_PERCENT = 100;
 const MANUAL_SPEED_CAP_STEP = 5;
+const GAMEPAD_DEADZONE = 0.14;
+
+const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
+const applyDeadzone = (value, deadzone = GAMEPAD_DEADZONE) => {
+  if (Math.abs(value) < deadzone) {
+    return 0;
+  }
+
+  const normalized = (Math.abs(value) - deadzone) / (1 - deadzone);
+  return Math.sign(value) * normalized;
+};
 
 const ManualControl = () => {
   const { wsStatus, wsError, lastMessage, connectWs, disconnectWs, sendCommand, acquireLock, releaseLock } = useRobotControl();
@@ -19,6 +31,7 @@ const ManualControl = () => {
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [manualSpeedCap, setManualSpeedCap] = useState(DEFAULT_MANUAL_SPEED_CAP_PERCENT);
+  const [connectedGamepadLabel, setConnectedGamepadLabel] = useState('');
   const constraintsRef = useRef(null);
   const lastSendRef = useRef(0);
   const queuedCommandRef = useRef(null);
@@ -26,6 +39,10 @@ const ManualControl = () => {
   const flushTimeoutRef = useRef(null);
   const pressedKeysRef = useRef(new Set());
   const lastSentSpeedCapRef = useRef(null);
+  const gamepadAnimationFrameRef = useRef(null);
+  const activeGamepadIndexRef = useRef(null);
+  const gamepadDrivingRef = useRef(false);
+  const gamepadSpeedCapArmedRef = useRef(true);
   const maxLinear = 1.0;
   const maxAngular = 2.0;
 
@@ -198,6 +215,45 @@ const ManualControl = () => {
     applyControlOffset(horizontal * maxRadius, vertical * maxRadius);
   }, [applyControlOffset, getMaxRadius, handleDragEnd]);
 
+  const setSpeedCapFromGamepadAxis = useCallback((axisValue) => {
+    const normalizedAxis = applyDeadzone(axisValue);
+
+    if (normalizedAxis === 0) {
+      gamepadSpeedCapArmedRef.current = true;
+      return;
+    }
+
+    if (!gamepadSpeedCapArmedRef.current) {
+      return;
+    }
+
+    const normalizedPercent = (1 - normalizedAxis) / 2;
+    const rawSpeedCap = MIN_MANUAL_SPEED_CAP_PERCENT
+      + (normalizedPercent * (MAX_MANUAL_SPEED_CAP_PERCENT - MIN_MANUAL_SPEED_CAP_PERCENT));
+    const steppedSpeedCap = Math.round(rawSpeedCap / MANUAL_SPEED_CAP_STEP) * MANUAL_SPEED_CAP_STEP;
+    const nextSpeedCap = clamp(steppedSpeedCap, MIN_MANUAL_SPEED_CAP_PERCENT, MAX_MANUAL_SPEED_CAP_PERCENT);
+
+    gamepadSpeedCapArmedRef.current = false;
+    setManualSpeedCap((current) => (current === nextSpeedCap ? current : nextSpeedCap));
+  }, []);
+
+  const applyGamepadDrive = useCallback((horizontalAxis, verticalAxis) => {
+    const normX = clamp(applyDeadzone(horizontalAxis), -1, 1);
+    const normY = clamp(applyDeadzone(verticalAxis), -1, 1);
+
+    if (normX === 0 && normY === 0) {
+      if (gamepadDrivingRef.current) {
+        gamepadDrivingRef.current = false;
+        handleDragEnd();
+      }
+      return;
+    }
+
+    const maxRadius = getMaxRadius();
+    gamepadDrivingRef.current = true;
+    applyControlOffset(normX * maxRadius, normY * maxRadius);
+  }, [applyControlOffset, getMaxRadius, handleDragEnd]);
+
   const handlePointerDown = (event) => {
     event.currentTarget.setPointerCapture(event.pointerId);
     setIsDragging(true);
@@ -280,6 +336,80 @@ const ManualControl = () => {
       resetKeyboardControl();
     };
   }, [canOperate, handleDragEnd, setTargetFromKeyboard]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+      return undefined;
+    }
+
+    const updateConnectedGamepad = () => {
+      const gamepads = navigator.getGamepads ? Array.from(navigator.getGamepads()).filter(Boolean) : [];
+      const activeGamepad = gamepads.find((gamepad) => gamepad.mapping === 'standard')
+        || gamepads[0]
+        || null;
+
+      activeGamepadIndexRef.current = activeGamepad ? activeGamepad.index : null;
+      setConnectedGamepadLabel(activeGamepad?.id || '');
+    };
+
+    const pollGamepadState = () => {
+      if (!canOperate || document.hidden) {
+        if (gamepadDrivingRef.current) {
+          gamepadDrivingRef.current = false;
+          handleDragEnd();
+        }
+        gamepadAnimationFrameRef.current = window.requestAnimationFrame(pollGamepadState);
+        return;
+      }
+
+      const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+      const activeIndex = activeGamepadIndexRef.current;
+      const gamepad = activeIndex !== null ? gamepads[activeIndex] : null;
+
+      if (gamepad) {
+        const leftStickY = gamepad.axes[1] ?? 0;
+        const rightStickX = gamepad.axes[2] ?? 0;
+        const rightStickY = gamepad.axes[3] ?? gamepad.axes[5] ?? 0;
+
+        setSpeedCapFromGamepadAxis(leftStickY);
+        applyGamepadDrive(rightStickX, rightStickY);
+      } else if (gamepadDrivingRef.current) {
+        gamepadDrivingRef.current = false;
+        handleDragEnd();
+      }
+
+      gamepadAnimationFrameRef.current = window.requestAnimationFrame(pollGamepadState);
+    };
+
+    const handleGamepadConnected = () => {
+      updateConnectedGamepad();
+    };
+
+    const handleGamepadDisconnected = () => {
+      updateConnectedGamepad();
+      if (activeGamepadIndexRef.current === null && gamepadDrivingRef.current) {
+        gamepadDrivingRef.current = false;
+        handleDragEnd();
+      }
+    };
+
+    updateConnectedGamepad();
+    gamepadAnimationFrameRef.current = window.requestAnimationFrame(pollGamepadState);
+    window.addEventListener('gamepadconnected', handleGamepadConnected);
+    window.addEventListener('gamepaddisconnected', handleGamepadDisconnected);
+
+    return () => {
+      if (gamepadAnimationFrameRef.current) {
+        window.cancelAnimationFrame(gamepadAnimationFrameRef.current);
+        gamepadAnimationFrameRef.current = null;
+      }
+      window.removeEventListener('gamepadconnected', handleGamepadConnected);
+      window.removeEventListener('gamepaddisconnected', handleGamepadDisconnected);
+      activeGamepadIndexRef.current = null;
+      gamepadDrivingRef.current = false;
+      gamepadSpeedCapArmedRef.current = true;
+    };
+  }, [applyGamepadDrive, canOperate, handleDragEnd, setSpeedCapFromGamepadAxis]);
 
   const handleConnect = async () => {
     setLockError('');
@@ -422,6 +552,10 @@ const ManualControl = () => {
         <p className="mt-2 text-[11px] text-gray-500">
           Caps joystick driving power on the robot. Full joystick still sends full input, but the robot limits output to this value.
         </p>
+        <p className="mt-2 text-[11px] text-gray-500">
+          PS4 controller: move the left stick once to set this speed cap, return it to center to arm the next adjustment, and use the right stick to drive.
+          {connectedGamepadLabel ? ` Connected: ${connectedGamepadLabel}.` : ' Connect a controller and press a button if the browser does not detect it yet.'}
+        </p>
       </div>
 
       <div className="flex-grow flex items-center justify-center min-h-[280px] md:min-h-0">
@@ -464,7 +598,7 @@ const ManualControl = () => {
       </div>
 
       <p className="mt-4 md:mt-6 text-center text-[10px] md:text-xs text-gray-500 font-mono">
-        DRAG JOYSTICK OR USE WASD
+        DRAG JOYSTICK, USE WASD, OR DRIVE WITH A PS4 CONTROLLER
       </p>
     </div>
   );
