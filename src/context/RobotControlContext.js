@@ -15,6 +15,83 @@ const toWsUrl = () => {
   return base.replace(/^http/, 'ws');
 };
 
+const TTS_VOICE_PRESETS = [
+  {
+    id: 'assistive-computer',
+    label: 'Assistive Computer',
+    description: 'Flat, clear, monotone computer speech.',
+    options: {
+      variant: 'klatt',
+      amplitude: 100,
+      pitch: 34,
+      speed: 145,
+      wordgap: 1,
+    },
+  },
+  {
+    id: 'anime-uwu',
+    label: 'Anime Uwu',
+    description: 'Bright, playful, high-pitched synthetic voice.',
+    options: {
+      variant: 'f4',
+      amplitude: 100,
+      pitch: 72,
+      speed: 175,
+      wordgap: 1,
+    },
+  },
+  {
+    id: 'creepy',
+    label: 'Creepy',
+    description: 'Breathy, eerie voice with a slower delivery.',
+    options: {
+      variant: 'whisper',
+      amplitude: 100,
+      pitch: 28,
+      speed: 118,
+      wordgap: 3,
+    },
+  },
+  {
+    id: 'deep-radio',
+    label: 'Deep Radio',
+    description: 'Low, broadcast-like robotic announcer.',
+    options: {
+      variant: 'm3',
+      amplitude: 100,
+      pitch: 24,
+      speed: 138,
+      wordgap: 1,
+    },
+  },
+  {
+    id: 'glitch-bot',
+    label: 'Glitch Bot',
+    description: 'Sharper, more mechanical synth texture.',
+    options: {
+      variant: 'croak',
+      amplitude: 100,
+      pitch: 46,
+      speed: 168,
+      wordgap: 0,
+    },
+  },
+  {
+    id: 'soft-narrator',
+    label: 'Soft Narrator',
+    description: 'Smoother and gentler but still synthetic.',
+    options: {
+      variant: 'f2',
+      amplitude: 100,
+      pitch: 52,
+      speed: 150,
+      wordgap: 1,
+    },
+  },
+];
+
+const DEFAULT_TTS_VOICE_PRESET = TTS_VOICE_PRESETS[0].id;
+
 export const RobotControlProvider = ({ children, autoConnect = true }) => {
   const { user } = useAuth();
   const wsRef = useRef(null);
@@ -58,6 +135,9 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
   const audioAbortRef = useRef(null);
   const ttsAbortRef = useRef(null);
   const micStreamRef = useRef(null);
+  const meSpeakModuleRef = useRef(null);
+  const meSpeakReadyRef = useRef(false);
+  const meSpeakLoadedVoicesRef = useRef(new Set());
   const canManageDrive = user?.role === 'Admin' || user?.role === 'Operator';
 
   useEffect(() => {
@@ -516,133 +596,66 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
     };
   }, []);
 
-  const synthesizeRobotSpeech = useCallback((text) => {
-    const normalizedText = String(text || '')
-      .trim()
-      .toLowerCase()
-      .replace(/ä/g, 'ae')
-      .replace(/ö/g, 'oe')
-      .replace(/ü/g, 'ue')
-      .replace(/ß/g, 'ss');
+  const ensureLocalTtsReady = useCallback(async (voiceId) => {
+    if (!meSpeakModuleRef.current) {
+      const [{ default: meSpeak }, { default: config }, { default: voiceDe }, { default: voiceEnUs }] = await Promise.all([
+        import('mespeak'),
+        import('mespeak/src/mespeak_config.json'),
+        import('mespeak/voices/de.json'),
+        import('mespeak/voices/en/en-us.json'),
+      ]);
 
+      meSpeakModuleRef.current = {
+        meSpeak,
+        config,
+        voices: {
+          de: voiceDe,
+          'en-us': voiceEnUs,
+        },
+      };
+    }
+
+    const { meSpeak, config, voices } = meSpeakModuleRef.current;
+
+    if (!meSpeakReadyRef.current) {
+      meSpeak.loadConfig(config);
+      meSpeakReadyRef.current = true;
+    }
+
+    if (!meSpeakLoadedVoicesRef.current.has(voiceId)) {
+      meSpeak.loadVoice(voices[voiceId] || voices['en-us']);
+      meSpeakLoadedVoicesRef.current.add(voiceId);
+    }
+    return meSpeak;
+  }, []);
+
+  const synthesizeRobotSpeech = useCallback(async (text, presetId = DEFAULT_TTS_VOICE_PRESET) => {
+    const normalizedText = String(text || '').trim();
     if (!normalizedText) {
       throw new Error('Enter text first');
     }
 
-    const vowelFormants = {
-      a: [800, 1200],
-      e: [500, 1900],
-      i: [320, 2400],
-      o: [520, 900],
-      u: [350, 800],
-      y: [380, 1700],
-    };
+    const prefersGerman = /[äöüß]|\b(der|die|das|und|ist|nicht|bitte|hallo|danke)\b/i.test(normalizedText);
+    const voiceId = prefersGerman ? 'de' : 'en-us';
+    const meSpeak = await ensureLocalTtsReady(voiceId);
+    meSpeak.setDefaultVoice(voiceId);
+    const preset = TTS_VOICE_PRESETS.find((item) => item.id === presetId) || TTS_VOICE_PRESETS[0];
 
-    const consonantShapes = {
-      b: { duration: 0.05, noise: 0.08, tone: 135 },
-      c: { duration: 0.06, noise: 0.28, tone: 150 },
-      d: { duration: 0.05, noise: 0.1, tone: 145 },
-      f: { duration: 0.055, noise: 0.34, tone: 180 },
-      g: { duration: 0.06, noise: 0.08, tone: 125 },
-      h: { duration: 0.05, noise: 0.2, tone: 160 },
-      j: { duration: 0.055, noise: 0.15, tone: 175 },
-      k: { duration: 0.05, noise: 0.24, tone: 150 },
-      l: { duration: 0.06, noise: 0.03, tone: 170 },
-      m: { duration: 0.07, noise: 0.02, tone: 120 },
-      n: { duration: 0.065, noise: 0.02, tone: 128 },
-      p: { duration: 0.045, noise: 0.28, tone: 160 },
-      q: { duration: 0.05, noise: 0.22, tone: 150 },
-      r: { duration: 0.06, noise: 0.04, tone: 155 },
-      s: { duration: 0.065, noise: 0.38, tone: 210 },
-      t: { duration: 0.045, noise: 0.26, tone: 185 },
-      v: { duration: 0.06, noise: 0.24, tone: 170 },
-      w: { duration: 0.06, noise: 0.08, tone: 145 },
-      x: { duration: 0.07, noise: 0.32, tone: 210 },
-      z: { duration: 0.065, noise: 0.26, tone: 195 },
-    };
-
-    const sampleRate = AUDIO_SAMPLE_RATE_HZ;
-    const segments = [];
-    let charIndex = 0;
-
-    const createSilence = (durationSec) => {
-      segments.push(new Float32Array(Math.max(1, Math.round(durationSec * sampleRate))));
-    };
-
-    const createSegment = (char, durationSec, generator) => {
-      const length = Math.max(1, Math.round(durationSec * sampleRate));
-      const segment = new Float32Array(length);
-      for (let i = 0; i < length; i += 1) {
-        const t = i / sampleRate;
-        const fade = Math.min(i / (length * 0.15), (length - i) / (length * 0.18), 1);
-        segment[i] = generator(t, fade);
-      }
-      segments.push(segment);
-      if (char !== ' ') {
-        createSilence(0.012);
-      }
-    };
-
-    for (const char of normalizedText) {
-      charIndex += 1;
-      if (char === ' ') {
-        createSilence(0.06);
-        continue;
-      }
-
-      if (/[.,!?;:]/.test(char)) {
-        createSilence(0.1);
-        continue;
-      }
-
-      if (vowelFormants[char]) {
-        const [f1, f2] = vowelFormants[char];
-        const fundamental = 105 + ((charIndex % 5) * 18);
-        createSegment(char, 0.11, (t, fade) => {
-          const saw = (
-            Math.sin(2 * Math.PI * fundamental * t)
-            + 0.5 * Math.sin(2 * Math.PI * fundamental * 2 * t)
-            + 0.25 * Math.sin(2 * Math.PI * fundamental * 3 * t)
-          ) / 1.75;
-          const formants = (
-            0.45 * Math.sin(2 * Math.PI * f1 * t)
-            + 0.28 * Math.sin(2 * Math.PI * f2 * t)
-          );
-          const ring = Math.sin(2 * Math.PI * (fundamental * 0.5) * t) * 0.2 + 0.8;
-          return fade * (0.42 * saw + 0.22 * formants * ring);
-        });
-        continue;
-      }
-
-      const shape = consonantShapes[char] || { duration: 0.05, noise: 0.18, tone: 165 };
-      createSegment(char, shape.duration, (t, fade) => {
-        const pulse = Math.sign(Math.sin(2 * Math.PI * shape.tone * t));
-        const metallic = Math.sin(2 * Math.PI * shape.tone * 2.4 * t);
-        const deterministicNoise = (
-          Math.sin(2 * Math.PI * (shape.tone * 7.3) * t)
-          + 0.5 * Math.sin(2 * Math.PI * (shape.tone * 11.1) * t)
-          + 0.33 * Math.sin(2 * Math.PI * (shape.tone * 13.7) * t)
-        ) / 1.83;
-        return fade * (0.18 * pulse + 0.12 * metallic + shape.noise * deterministicNoise);
-      });
-    }
-
-    const totalLength = segments.reduce((sum, segment) => sum + segment.length, 0);
-    const floatData = new Float32Array(totalLength);
-    let offset = 0;
-    segments.forEach((segment) => {
-      floatData.set(segment, offset);
-      offset += segment.length;
+    const wavBytes = meSpeak.speak(normalizedText, {
+      rawdata: 'array',
+      variant: preset.options.variant,
+      amplitude: preset.options.amplitude,
+      pitch: preset.options.pitch + (prefersGerman ? -2 : 0),
+      speed: preset.options.speed + (prefersGerman ? -5 : 0),
+      wordgap: preset.options.wordgap,
     });
 
-    const pcm = new Int16Array(floatData.length);
-    for (let i = 0; i < floatData.length; i += 1) {
-      const sample = Math.max(-1, Math.min(1, floatData[i] * 1.6));
-      pcm[i] = Math.round(sample * 32767);
+    if (!wavBytes || !wavBytes.length) {
+      throw new Error('Failed to synthesize speech');
     }
 
-    return pcm;
-  }, []);
+    return new Uint8Array(wavBytes).buffer;
+  }, [ensureLocalTtsReady]);
 
   const cleanupMicStream = useCallback(async ({ sendStop = true, message } = {}) => {
     const activeMicStream = micStreamRef.current;
@@ -852,7 +865,7 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
     }
   }, [cleanupMicStream, createLivePcmEncoder, isAudioStreaming, isMicStreaming, isTtsStreaming, sendBinary, sendCommand, wsStatus]);
 
-  const startTextToSpeechStream = useCallback(async (text) => {
+  const startTextToSpeechStream = useCallback(async (text, presetId = DEFAULT_TTS_VOICE_PRESET) => {
     if (wsStatus !== 'connected') {
       setTtsStreamMessage('WebSocket not connected');
       return;
@@ -877,7 +890,11 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
     let started = false;
 
     try {
-      const pcmData = synthesizeRobotSpeech(normalizedText);
+      const preset = TTS_VOICE_PRESETS.find((item) => item.id === presetId) || TTS_VOICE_PRESETS[0];
+      setTtsStreamMessage(`Synthesizing ${preset.label}...`);
+      const wavBuffer = await synthesizeRobotSpeech(normalizedText, presetId);
+      const blob = new Blob([wavBuffer], { type: 'audio/wav' });
+      const pcmData = await decodeToPcm(blob);
       if (abortController.signal.aborted) {
         return;
       }
@@ -894,7 +911,7 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
       }
 
       started = true;
-      setTtsStreamMessage('Streaming robot voice...');
+      setTtsStreamMessage(`Streaming ${preset.label}...`);
 
       const totalSamples = pcmData.length;
       let sentSamples = 0;
@@ -918,7 +935,7 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
       }
 
       if (!abortController.signal.aborted) {
-        setTtsStreamMessage('Robot voice sent');
+        setTtsStreamMessage(`${preset.label} sent`);
       }
     } catch (error) {
       setTtsStreamMessage(error?.message || 'Robot voice failed');
@@ -929,7 +946,7 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
       ttsAbortRef.current = null;
       setIsTtsStreaming(false);
     }
-  }, [isAudioStreaming, isMicStreaming, isTtsStreaming, sendBinary, sendCommand, synthesizeRobotSpeech, wsStatus]);
+  }, [decodeToPcm, isAudioStreaming, isMicStreaming, isTtsStreaming, sendBinary, sendCommand, synthesizeRobotSpeech, wsStatus]);
 
   const acquireLock = useCallback(async () => {
     if (!canManageDriveRef.current) {
@@ -1170,6 +1187,8 @@ export const RobotControlProvider = ({ children, autoConnect = true }) => {
       isMicStreaming,
       micStreamMessage,
       isTtsStreaming,
+      ttsVoicePresets: TTS_VOICE_PRESETS,
+      defaultTtsVoicePreset: DEFAULT_TTS_VOICE_PRESET,
       ttsStreamMessage,
       ttsStreamProgress,
       selectAudioFile,

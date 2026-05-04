@@ -2,6 +2,15 @@ import React, { useMemo, useState } from 'react';
 import { Lightbulb, Megaphone, Mic, SlidersHorizontal, Square, Volume2, X } from 'lucide-react';
 import { useRobotControl } from '../../context/RobotControlContext';
 
+const LOCAL_TTS_PRESET_FALLBACKS = [
+  { id: 'assistive-computer', label: 'Assistive Computer', description: 'Flat, clear, monotone computer speech.' },
+  { id: 'anime-uwu', label: 'Anime Uwu', description: 'Bright, playful, high-pitched synthetic voice.' },
+  { id: 'creepy', label: 'Creepy', description: 'Breathy, eerie voice with a slower delivery.' },
+  { id: 'deep-radio', label: 'Deep Radio', description: 'Low, broadcast-like robotic announcer.' },
+  { id: 'glitch-bot', label: 'Glitch Bot', description: 'Sharper, more mechanical synth texture.' },
+  { id: 'soft-narrator', label: 'Soft Narrator', description: 'Smoother and gentler but still synthetic.' },
+];
+
 const wsBadgeClass = (status) => {
   switch (status) {
     case 'connected':
@@ -40,6 +49,8 @@ const PeripheralControl = ({ onClose }) => {
     isMicStreaming,
     micStreamMessage,
     isTtsStreaming,
+    ttsVoicePresets,
+    defaultTtsVoicePreset,
     ttsStreamMessage,
     ttsStreamProgress,
     selectAudioFile,
@@ -59,6 +70,8 @@ const PeripheralControl = ({ onClose }) => {
   const [beepMs, setBeepMs] = useState(150);
   const [feedback, setFeedback] = useState('');
   const [ttsText, setTtsText] = useState('');
+  const availableTtsVoicePresets = ttsVoicePresets?.length ? ttsVoicePresets : LOCAL_TTS_PRESET_FALLBACKS;
+  const [ttsVoicePreset, setTtsVoicePreset] = useState(defaultTtsVoicePreset || availableTtsVoicePresets[0].id);
   const isAnyAudioStreamActive = isAudioStreaming || isMicStreaming || isTtsStreaming;
 
   const ledPreviewStyle = useMemo(
@@ -105,7 +118,7 @@ const PeripheralControl = ({ onClose }) => {
   };
 
   const handleTextToSpeech = () => {
-    startTextToSpeechStream(ttsText);
+    startTextToSpeechStream(ttsText, ttsVoicePreset);
   };
 
 
@@ -343,9 +356,22 @@ const PeripheralControl = ({ onClose }) => {
             >
               <span>Play Test Beep</span>
             </button>
-            <div className="pt-3 border-t border-white/10 space-y-3">
-              <div className="space-y-1">
-                <label className="text-xs text-gray-400">Robot speech text</label>
+              <div className="pt-3 border-t border-white/10 space-y-3">
+                <div className="space-y-1">
+                  <label className="text-xs text-gray-400">Robot speech text</label>
+                  <label className="text-xs text-gray-400">Voice preset</label>
+                  <select
+                    value={ttsVoicePreset}
+                    onChange={(event) => setTtsVoicePreset(event.target.value)}
+                    className="w-full h-10 rounded border border-white/10 bg-dark-900 text-white px-3 text-xs"
+                    disabled={isAnyAudioStreamActive}
+                  >
+                    {availableTtsVoicePresets.map((preset) => (
+                      <option key={preset.id} value={preset.id}>
+                        {preset.label}
+                      </option>
+                    ))}
+                  </select>
                 <textarea
                   value={ttsText}
                   onChange={(event) => setTtsText(event.target.value)}
@@ -354,7 +380,7 @@ const PeripheralControl = ({ onClose }) => {
                   className="w-full rounded-lg border border-white/10 bg-dark-900 px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-primary/50 resize-none"
                 />
                 <p className="text-[11px] text-gray-500">
-                  Synthesizes a robotic voice in the browser, then streams it to the ESP.
+                  {availableTtsVoicePresets.find((preset) => preset.id === ttsVoicePreset)?.description || 'Uses a local speech engine in the browser, then streams the generated voice to the ESP.'}
                 </p>
               </div>
               <div className="flex items-center gap-2">
