@@ -127,15 +127,15 @@ code {
 /* Light theme overrides */
 .theme-light body,
 .theme-light #root {
-  background-color: #eff3f8;
+  background-color: #f6f8fb;
   color: #0f172a;
 }
 
 .theme-light body {
   background-image:
-    radial-gradient(1200px 520px at 10% -10%, rgba(56, 189, 248, 0.08), transparent 60%),
-    radial-gradient(900px 460px at 90% 0%, rgba(99, 102, 241, 0.06), transparent 60%),
-    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 46%, #e8eef5 100%);
+    radial-gradient(1200px 520px at 10% -10%, rgba(56, 189, 248, 0.05), transparent 60%),
+    radial-gradient(900px 460px at 90% 0%, rgba(99, 102, 241, 0.04), transparent 60%),
+    linear-gradient(180deg, #fbfdff 0%, #f6f8fb 48%, #eef3f8 100%);
   background-attachment: fixed;
   line-height: 1.6;
   letter-spacing: 0.002em;
@@ -146,7 +146,7 @@ code {
 }
 
 .theme-light .bg-tech-gradient {
-  background: linear-gradient(135deg, #eef4fc 0%, #e4ecf7 52%, #dbe5f1 100%);
+  background: linear-gradient(135deg, #fbfdff 0%, #f4f7fb 52%, #edf3f8 100%);
 }
 
 .theme-light .text-white {
@@ -162,15 +162,15 @@ code {
 }
 
 .theme-light .text-gray-300 {
-  color: #1e293b;
+  color: #26364c;
 }
 
 .theme-light .text-gray-400 {
-  color: #334155;
+  color: #3f5067;
 }
 
 .theme-light .text-gray-500 {
-  color: #475569;
+  color: #52657d;
 }
 
 .theme-light .text-gray-600 {
@@ -186,63 +186,91 @@ code {
 }
 
 .theme-light .bg-dark-900 {
-  background-color: #f4f7fb;
+  background-color: #f8fafc;
 }
 
 .theme-light .bg-dark-800 {
-  background-color: #edf2f8;
+  background-color: #f1f5f9;
 }
 
 .theme-light .bg-dark-700 {
-  background-color: #e4ebf3;
+  background-color: #e7edf5;
 }
 
 .theme-light .bg-dark-600 {
-  background-color: #dce5ef;
+  background-color: #dbe4ef;
 }
 
 .theme-light .bg-dark-800\/50 {
-  background-color: rgba(237, 242, 248, 0.84);
+  background-color: rgba(241, 245, 249, 0.88);
+}
+
+.theme-light .bg-dark-800\/45 {
+  background-color: rgba(242, 246, 250, 0.82);
+}
+
+.theme-light .bg-dark-800\/60 {
+  background-color: rgba(239, 244, 249, 0.90);
+}
+
+.theme-light .bg-dark-800\/70 {
+  background-color: rgba(236, 242, 248, 0.94);
 }
 
 .theme-light .focus\:bg-dark-800:focus {
-  background-color: #e2ebf7;
+  background-color: #eaf1f8;
 }
 
 .theme-light .hover\:bg-dark-800\/80:hover {
-  background-color: rgba(237, 242, 248, 0.96);
+  background-color: rgba(229, 237, 246, 0.98);
 }
 
 .theme-light .hover\:bg-dark-700:hover {
-  background-color: #e4ebf3;
+  background-color: #e7edf5;
 }
 
 .theme-light .hover\:bg-dark-600:hover {
   background-color: #dce5ef;
 }
 
-.theme-light .bg-dark-800\/60 {
-  background-color: rgba(237, 242, 248, 0.88);
-}
-
 .theme-light .bg-dark-900\/80 {
-  background-color: rgba(244, 247, 251, 0.90);
+  background-color: rgba(248, 250, 252, 0.94);
 }
 
 .theme-light .bg-dark-900\/95 {
-  background-color: rgba(244, 247, 251, 0.96);
+  background-color: rgba(252, 253, 255, 0.98);
 }
 
 .theme-light .bg-dark-900\/50 {
-  background-color: rgba(244, 247, 251, 0.72);
+  background-color: rgba(248, 250, 252, 0.82);
+}
+
+.theme-light .bg-dark-900\/30 {
+  background-color: rgba(248, 250, 252, 0.68);
+}
+
+.theme-light .bg-dark-900\/40 {
+  background-color: rgba(248, 250, 252, 0.76);
+}
+
+.theme-light .bg-dark-900\/45 {
+  background-color: rgba(248, 250, 252, 0.80);
+}
+
+.theme-light .bg-dark-900\/60 {
+  background-color: rgba(244, 248, 252, 0.92);
+}
+
+.theme-light .bg-dark-900\/70 {
+  background-color: rgba(246, 249, 252, 0.94);
 }
 
 .theme-light .bg-white\/5 {
-  background-color: rgba(51, 65, 85, 0.05);
+  background-color: rgba(51, 65, 85, 0.055);
 }
 
 .theme-light .bg-white\/10 {
-  background-color: rgba(51, 65, 85, 0.08);
+  background-color: rgba(51, 65, 85, 0.09);
 }
 
 .theme-light .border-white\/5 {
@@ -257,18 +285,108 @@ code {
   border-color: rgba(51, 65, 85, 0.20);
 }
 
+.theme-light .border-white\/30 {
+  border-color: rgba(51, 65, 85, 0.24);
+}
+
+.theme-light .bg-warning\/10 {
+  background-color: rgba(245, 158, 11, 0.16);
+}
+
+.theme-light .bg-warning\/20 {
+  background-color: rgba(245, 158, 11, 0.22);
+}
+
+.theme-light .border-warning\/20,
+.theme-light .border-warning\/25,
+.theme-light .border-warning\/30 {
+  border-color: rgba(180, 83, 9, 0.34);
+}
+
+.theme-light .text-warning {
+  color: #92400e;
+}
+
+.theme-light .text-danger {
+  color: #be123c;
+}
+
+.theme-light .bg-danger\/10 {
+  background-color: rgba(225, 29, 72, 0.11);
+}
+
+.theme-light .border-danger\/20,
+.theme-light .border-danger\/25,
+.theme-light .border-danger\/30,
+.theme-light .border-danger\/35 {
+  border-color: rgba(190, 18, 60, 0.28);
+}
+
+.theme-light .bg-success\/10 {
+  background-color: rgba(5, 150, 105, 0.11);
+}
+
+.theme-light .text-success {
+  color: #047857;
+}
+
+.theme-light .border-success\/20,
+.theme-light .border-success\/25 {
+  border-color: rgba(4, 120, 87, 0.24);
+}
+
+.theme-light .bg-primary\/10 {
+  background-color: rgba(14, 116, 144, 0.11);
+}
+
+.theme-light .border-primary\/20,
+.theme-light .border-primary\/25,
+.theme-light .border-primary\/40 {
+  border-color: rgba(14, 116, 144, 0.25);
+}
+
+.theme-light .bg-\[\#0D0D10\] {
+  background-color: #eef3f8;
+}
+
+.theme-light .bg-white\/\[0\.03\] {
+  background-color: rgba(255, 255, 255, 0.62);
+}
+
+.theme-light .bg-white\/\[0\.04\] {
+  background-color: rgba(255, 255, 255, 0.72);
+}
+
+.theme-light .placeholder\:text-gray-500::placeholder {
+  color: #64748b;
+}
+
+.theme-light .disabled\:opacity-45:disabled,
+.theme-light .disabled\:opacity-50:disabled,
+.theme-light .disabled\:opacity-60:disabled {
+  opacity: 0.68;
+}
+
+.theme-light .opacity-50 {
+  opacity: 0.70;
+}
+
+.theme-light .grayscale {
+  filter: grayscale(0.35);
+}
+
 .theme-light .glass-panel {
-  background: rgba(249, 251, 253, 0.86);
-  border: 1px solid rgba(51, 65, 85, 0.12);
-  box-shadow: 0 12px 28px 0 rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(51, 65, 85, 0.11);
+  box-shadow: 0 12px 28px 0 rgba(15, 23, 42, 0.06);
 }
 
 .theme-light .glass-input {
-  background: rgba(245, 249, 253, 0.90);
+  background: rgba(248, 250, 252, 0.94);
 }
 
 .theme-light .glass-card {
-  background: rgba(247, 250, 253, 0.88);
+  background: rgba(255, 255, 255, 0.86);
   border: 1px solid rgba(51, 65, 85, 0.12);
 }
 
