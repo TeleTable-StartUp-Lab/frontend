@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Gamepad2, Link2, Power, MessageSquare } from 'lucide-react';
+import { Gamepad2, Gauge } from 'lucide-react';
 import { useRobotControl } from '../../context/RobotControlContext';
 import { useAuth } from '../../context/AuthContext';
 
@@ -22,12 +22,12 @@ const applyDeadzone = (value, deadzone = GAMEPAD_DEADZONE) => {
   return Math.sign(value) * normalized;
 };
 
-const ManualControl = () => {
-  const { wsStatus, wsError, lastMessage, connectWs, disconnectWs, sendCommand, acquireLock, releaseLock } = useRobotControl();
+const ManualControl = ({ dashboardState }) => {
+  const { wsStatus, sendCommand } = useRobotControl();
   const { user } = useAuth();
   const canOperate = user?.role === 'Admin' || user?.role === 'Operator';
-  const [lockStatus, setLockStatus] = useState('');
-  const [lockError, setLockError] = useState('');
+  const isCommandReady = wsStatus === 'connected';
+  const canDrive = canOperate && isCommandReady && (!dashboardState || dashboardState.state === 'manual_ready');
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [manualSpeedCap, setManualSpeedCap] = useState(DEFAULT_MANUAL_SPEED_CAP_PERCENT);
@@ -255,12 +255,13 @@ const ManualControl = () => {
   }, [applyControlOffset, getMaxRadius, handleDragEnd]);
 
   const handlePointerDown = (event) => {
+    if (!canDrive) return;
     event.currentTarget.setPointerCapture(event.pointerId);
     setIsDragging(true);
   };
 
   const handlePointerMove = (event) => {
-    if (!isDragging) return;
+    if (!isDragging || !canDrive) return;
     const bounds = constraintsRef.current?.getBoundingClientRect();
     if (!bounds) return;
     const centerX = bounds.left + bounds.width / 2;
@@ -276,6 +277,7 @@ const ManualControl = () => {
   };
 
   const handlePointerUp = (event) => {
+    if (!isDragging) return;
     event.currentTarget.releasePointerCapture(event.pointerId);
     setIsDragging(false);
     handleDragEnd();
@@ -292,7 +294,7 @@ const ManualControl = () => {
     };
 
     const handleKeyDown = (event) => {
-      if (!canOperate) return;
+      if (!canDrive) return;
       const key = event.key.toLowerCase();
       if (!movementKeys.has(key)) return;
       if (isEditableElement(event.target)) return;
@@ -335,7 +337,7 @@ const ManualControl = () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       resetKeyboardControl();
     };
-  }, [canOperate, handleDragEnd, setTargetFromKeyboard]);
+  }, [canDrive, handleDragEnd, setTargetFromKeyboard]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof navigator === 'undefined') {
@@ -353,7 +355,7 @@ const ManualControl = () => {
     };
 
     const pollGamepadState = () => {
-      if (!canOperate || document.hidden) {
+      if (!canDrive || document.hidden) {
         if (gamepadDrivingRef.current) {
           gamepadDrivingRef.current = false;
           handleDragEnd();
@@ -409,43 +411,18 @@ const ManualControl = () => {
       gamepadDrivingRef.current = false;
       gamepadSpeedCapArmedRef.current = true;
     };
-  }, [applyGamepadDrive, canOperate, handleDragEnd, setSpeedCapFromGamepadAxis]);
-
-  const handleConnect = async () => {
-    setLockError('');
-    try {
-      const res = await acquireLock();
-      if (res.status === 'error') {
-        setLockError(res.message || 'Failed to acquire lock');
-        return;
-      } else {
-        setLockStatus(res.message || 'Lock acquired');
-      }
-    } catch (e) {
-      setLockError('Failed to acquire lock');
-      return;
-    }
-    connectWs();
-  };
-
-  const handleDisconnect = async () => {
-    disconnectWs();
-    setLockError('');
-    try {
-      const res = await releaseLock();
-      if (res.status === 'error') {
-        setLockError(res.message || 'Failed to release lock');
-      } else {
-        setLockStatus(res.message || 'Lock released');
-      }
-    } catch (e) {
-      setLockError('Failed to release lock');
-    }
-  };
+  }, [applyGamepadDrive, canDrive, handleDragEnd, setSpeedCapFromGamepadAxis]);
 
   const handleManualSpeedCapChange = useCallback((event) => {
     setManualSpeedCap(Number(event.target.value));
   }, []);
+
+  useEffect(() => {
+    if (canDrive) return;
+    if (!isDragging && dragPos.x === 0 && dragPos.y === 0) return;
+    setIsDragging(false);
+    handleDragEnd();
+  }, [canDrive, dragPos.x, dragPos.y, handleDragEnd, isDragging]);
 
   const wsBadge = useMemo(() => {
     switch (wsStatus) {
@@ -462,10 +439,10 @@ const ManualControl = () => {
 
   if (!canOperate) {
     return (
-      <div className="glass-panel rounded-xl p-6 border border-white/10 h-full flex flex-col">
-        <div className="flex items-center gap-3 mb-4">
-          <Gamepad2 className="w-5 h-5 text-secondary" />
-          <h3 className="text-lg font-medium text-gray-400">Manual Override</h3>
+      <div className="rounded-lg bg-dark-900/45 p-4">
+        <div className="mb-3 flex items-center gap-3">
+          <Gamepad2 className="h-5 w-5 text-primary" />
+          <h3 className="text-sm font-semibold text-gray-100">Joystick unavailable</h3>
         </div>
         <p className="text-sm text-gray-500">
           Read-only access: manual controls are disabled for Viewer accounts.
@@ -475,67 +452,25 @@ const ManualControl = () => {
   }
 
   return (
-    <div className="glass-panel rounded-xl p-4 md:p-6 border border-white/10 h-full flex flex-col">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 md:mb-6">
-        <div className="flex items-center gap-2 md:gap-3 flex-wrap">
-          <div className={`px-2 md:px-3 py-1 rounded border text-[10px] md:text-xs font-mono ${wsBadge} min-w-[100px] md:min-w-[130px] text-left`}>
-            WS: {wsStatus.toUpperCase()}
+    <div className="flex h-full flex-col">
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Gamepad2 className="h-5 w-5 text-primary" />
+          <div>
+            <div className="text-sm font-semibold text-gray-100">Joystick</div>
+            <div className="text-xs text-gray-500">Direct drive input</div>
           </div>
-          <h3 className="text-base md:text-lg font-medium text-gray-400 flex items-center gap-2">
-            <Gamepad2 className="w-4 md:w-5 h-4 md:h-5 text-secondary" />
-            <span className="hidden sm:inline">Manual Override</span>
-            <span className="sm:hidden">Manual</span>
-          </h3>
+        </div>
+        <div className={`rounded border px-2 py-1 text-[10px] font-mono ${wsBadge}`}>
+          {wsStatus.toUpperCase()}
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 md:gap-3 mb-4 md:mb-6">
-        <button
-          type="button"
-          onClick={handleConnect}
-          disabled={wsStatus === 'connected' || wsStatus === 'connecting'}
-          className="inline-flex items-center justify-center gap-1.5 md:gap-2 px-2 md:px-3 py-2 bg-dark-800 border border-white/10 rounded-lg text-[10px] md:text-xs text-white hover:bg-dark-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Link2 className="h-3.5 md:h-4 w-3.5 md:w-4 text-success" />
-          <span className="hidden sm:inline">Connect WS</span>
-          <span className="sm:hidden">Connect</span>
-        </button>
-        <button
-          type="button"
-          onClick={handleDisconnect}
-          className="inline-flex items-center justify-center gap-1.5 md:gap-2 px-2 md:px-3 py-2 bg-dark-800 border border-white/10 rounded-lg text-[10px] md:text-xs text-white hover:bg-dark-700 transition-colors"
-        >
-          <Power className="h-3.5 md:h-4 w-3.5 md:w-4 text-danger" />
-          <span className="hidden sm:inline">Disconnect</span>
-          <span className="sm:hidden">Stop</span>
-        </button>
-      </div>
-
-      {(lockStatus || lockError || wsError || lastMessage) && (
-        <div className="space-y-2 mb-4 md:mb-6">
-          {lockStatus && (
-            <div className="text-[10px] md:text-xs text-success bg-success/10 border border-success/20 rounded-lg px-2 md:px-3 py-1.5 md:py-2">
-              {lockStatus}
-            </div>
-          )}
-          {(lockError || wsError) && (
-            <div className="text-[10px] md:text-xs text-danger bg-danger/10 border border-danger/20 rounded-lg px-2 md:px-3 py-1.5 md:py-2">
-              {lockError || wsError}
-            </div>
-          )}
-          {lastMessage && (
-            <div className="text-[10px] md:text-xs text-gray-300 bg-dark-800/60 border border-white/10 rounded-lg px-2 md:px-3 py-1.5 md:py-2 flex items-center gap-1.5 md:gap-2">
-              <MessageSquare className="h-3 w-3 text-primary flex-shrink-0" />
-              <span className="truncate">{lastMessage}</span>
-            </div>
-          )}
-        </div>
-      )}
-
-      <div className="mb-4 md:mb-6 rounded-xl border border-white/10 bg-dark-900/50 px-4 py-3">
+      <div className="mb-5 px-1">
         <div className="mb-2 flex items-center justify-between gap-3">
-          <label htmlFor="manual-speed-cap" className="text-xs font-medium uppercase tracking-[0.22em] text-gray-400">
-            Joystick Max Speed
+          <label htmlFor="manual-speed-cap" className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-gray-400">
+            <Gauge className="h-3.5 w-3.5 text-primary" />
+            Max Speed
           </label>
           <span className="text-sm font-mono text-primary">{manualSpeedCap}%</span>
         </div>
@@ -547,31 +482,25 @@ const ManualControl = () => {
           step={MANUAL_SPEED_CAP_STEP}
           value={manualSpeedCap}
           onChange={handleManualSpeedCapChange}
-          className="h-2 w-full cursor-pointer appearance-none rounded-full bg-white/10 accent-primary"
+          disabled={!canDrive}
+          className="h-2 w-full cursor-pointer appearance-none rounded-full bg-white/10 accent-primary disabled:cursor-not-allowed disabled:opacity-50"
         />
         <p className="mt-2 text-[11px] text-gray-500">
-          Caps joystick driving power on the robot. Full joystick still sends full input, but the robot limits output to this value.
-        </p>
-        <p className="mt-2 text-[11px] text-gray-500">
-          PS4 controller: move the left stick once to set this speed cap, return it to center to arm the next adjustment, and use the right stick to drive.
-          {connectedGamepadLabel ? ` Connected: ${connectedGamepadLabel}.` : ' Connect a controller and press a button if the browser does not detect it yet.'}
+          {connectedGamepadLabel ? `Controller: ${connectedGamepadLabel}` : 'Drag the stick, use WASD, or connect a standard gamepad.'}
         </p>
       </div>
 
-      <div className="flex-grow flex items-center justify-center min-h-[280px] md:min-h-0">
-        {/* Joystick Base */}
+      <div className="flex min-h-[280px] flex-grow items-center justify-center">
         <div
           ref={constraintsRef}
-          className="relative w-64 h-64 md:w-72 md:h-72 rounded-full bg-dark-800/50 border-2 border-white/5 shadow-inner flex items-center justify-center backdrop-blur-sm touch-none"
+          className={`relative flex h-64 w-64 items-center justify-center rounded-full bg-dark-800/50 shadow-inner backdrop-blur-sm touch-none md:h-72 md:w-72 ${canDrive ? 'ring-2 ring-primary/25' : 'opacity-50 ring-1 ring-white/10'}`}
         >
-          {/* Decorative Grid/Lines */}
           <div className="absolute inset-0 rounded-full opacity-20 pointer-events-none">
             <div className="absolute top-1/2 left-4 right-4 h-px bg-white"></div>
             <div className="absolute left-1/2 top-4 bottom-4 w-px bg-white"></div>
             <div className="absolute inset-8 md:inset-12 border border-white/30 rounded-full"></div>
           </div>
 
-          {/* Joystick Handle */}
           <div
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
@@ -590,15 +519,15 @@ const ManualControl = () => {
               }
             }}
             style={{ transform: `translate(${dragPos.x}px, ${dragPos.y}px)`, touchAction: 'none' }}
-            className="w-24 h-24 md:w-28 md:h-28 rounded-full bg-gradient-to-br from-primary to-secondary shadow-[0_0_30px_rgba(0,240,255,0.3)] cursor-grab active:cursor-grabbing flex items-center justify-center relative z-10 touch-none"
+            className={`relative z-10 flex h-24 w-24 items-center justify-center rounded-full bg-primary shadow-[0_0_18px_rgba(0,240,255,0.22)] touch-none md:h-28 md:w-28 ${canDrive ? 'cursor-grab active:cursor-grabbing' : 'cursor-not-allowed grayscale'}`}
           >
             <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/10 backdrop-blur-md border border-white/20"></div>
           </div>
         </div>
       </div>
 
-      <p className="mt-4 md:mt-6 text-center text-[10px] md:text-xs text-gray-500 font-mono">
-        DRAG JOYSTICK, USE WASD, OR DRIVE WITH A PS4 CONTROLLER
+      <p className="mt-4 text-center text-[10px] font-mono text-gray-500 md:text-xs">
+        {canDrive ? 'MANUAL DRIVE ACTIVE' : 'MANUAL DRIVE DISABLED'}
       </p>
     </div>
   );

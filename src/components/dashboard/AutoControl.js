@@ -1,172 +1,210 @@
-import React, { useState } from 'react';
-import { MapPin, Send, CheckCircle, Navigation, XCircle } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { CheckCircle, MapPin, Navigation, Route, Send, XCircle } from 'lucide-react';
 import { useRobotControl } from '../../context/RobotControlContext';
 import { useAuth } from '../../context/AuthContext';
+import { Button, cleanValue } from './DashboardPrimitives';
+import { MAP_ZONES } from './RobotMap';
 
-const AutoControl = () => {
-  const { nodes, selectRoute, sendCommand } = useRobotControl();
+const InlineState = ({ type, children }) => {
+  const styles = {
+    success: 'border-success/20 bg-success/10 text-success',
+    error: 'border-danger/20 bg-danger/10 text-danger',
+    info: 'border-primary/20 bg-primary/10 text-primary',
+  };
+
+  return (
+    <div className={`rounded-lg border px-3 py-2 text-xs ${styles[type]}`}>
+      {children}
+    </div>
+  );
+};
+
+const LocationSelect = ({ label, value, onChange, nodes, accent = 'text-primary', disabled = false }) => {
+  const mapOptions = MAP_ZONES.map((zone) => ({ id: zone.id, label: zone.label }));
+  const baseOptions = nodes.length ? nodes : mapOptions;
+  const hasValue = !value || baseOptions.some((node) => node.id === value);
+  const options = hasValue ? baseOptions : [{ id: value, label: value }, ...baseOptions];
+
+  return (
+    <div className="space-y-2">
+      <label className="block text-[11px] font-medium uppercase tracking-[0.18em] text-gray-500">
+        {label}
+      </label>
+      <div className="relative">
+        <MapPin className={`pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 ${accent}`} />
+        <select
+          value={value}
+          disabled={disabled}
+          onChange={(event) => onChange(event.target.value)}
+          className="block w-full appearance-none rounded-lg border border-white/10 bg-dark-800/70 py-2.5 pl-10 pr-9 text-sm text-gray-100 transition-colors hover:bg-dark-700 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <option value="">Select location</option>
+          {options.map((node) => (
+            <option key={node.id} value={node.id}>
+              {node.label}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
+  );
+};
+
+const AutoControl = ({
+  start = '',
+  destination = '',
+  onStartChange,
+  onDestinationChange,
+  onRouteSelected,
+  onNavigationStart,
+  onNavigationCancel,
+  dashboardState,
+}) => {
+  const { nodes, selectRoute, sendCommand, wsStatus } = useRobotControl();
   const { user } = useAuth();
-  const isAdmin = user?.role === 'Admin';
   const canOperate = user?.role === 'Admin' || user?.role === 'Operator';
-  const [start, setStart] = useState('');
-  const [destination, setDestination] = useState('');
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
 
+  const isCommandReady = wsStatus === 'connected';
+  const hasRoute = Boolean(start && destination);
+  const stateAllowsNavigation = dashboardState?.state === 'autonomous_ready';
+  const canNavigate = canOperate && isCommandReady && hasRoute && stateAllowsNavigation;
+  const canSelectRoute = canOperate && hasRoute && status !== 'selecting' && dashboardState?.robotConnected;
+  const selectorsDisabled = !dashboardState?.robotConnected;
+
+  const routeLabel = useMemo(() => {
+    if (!hasRoute) return 'Choose start and destination';
+    const startLabel = nodes.find((node) => node.id === start)?.label || start;
+    const destinationLabel = nodes.find((node) => node.id === destination)?.label || destination;
+    return `${startLabel} -> ${destinationLabel}`;
+  }, [destination, hasRoute, nodes, start]);
+
   const handleSelectRoute = async () => {
-    if (!start || !destination) return;
-    setStatus('sending');
+    if (!canSelectRoute) return;
+    setStatus('selecting');
     setError('');
+
     try {
-      const res = await selectRoute(start, destination);
-      if (res.status === 'error') {
-        setError(res.message || 'Route selection failed');
+      const response = await selectRoute(start, destination);
+      if (response.status === 'error') {
+        setError(response.message || 'Route selection failed');
         setStatus('');
-      } else {
-        setStatus('success');
-        setTimeout(() => setStatus(''), 3000);
+        return;
       }
-    } catch (e) {
-      setError('Route selection failed');
+
+      setStatus('selected');
+      onRouteSelected?.({ start, destination });
+      window.setTimeout(() => setStatus((current) => (current === 'selected' ? '' : current)), 3000);
+    } catch (event) {
+      setError(event?.message || 'Route selection failed');
       setStatus('');
     }
   };
 
-  const handleNavigateWs = () => {
-    if (!start || !destination) return;
+  const handleNavigate = () => {
+    if (!canNavigate) return;
     const ok = sendCommand({
       command: 'NAVIGATE',
       start,
       destination,
     });
+
     if (!ok) {
-      setError('WebSocket not connected');
-    } else {
-      setStatus('success');
-      setTimeout(() => setStatus(''), 3000);
+      setError('Command WebSocket is not connected');
+      setStatus('');
+      return;
     }
+
+    setError('');
+    setStatus('navigating');
+    onRouteSelected?.({ start, destination });
+    onNavigationStart?.({ start, destination });
+    window.setTimeout(() => setStatus((current) => (current === 'navigating' ? '' : current)), 3000);
   };
 
   const handleCancel = () => {
+    if (!canOperate) return;
     const ok = sendCommand({ command: 'CANCEL' });
     if (!ok) {
-      setError('WebSocket not connected');
+      setError('Command WebSocket is not connected');
+      setStatus('');
+      return;
     }
+    setError('');
+    setStatus('cancelled');
+    onNavigationCancel?.();
+    window.setTimeout(() => setStatus((current) => (current === 'cancelled' ? '' : current)), 3000);
   };
 
-
   return (
-    <div className="glass-panel rounded-xl p-6 border border-white/10">
-      <h3 className="text-lg font-medium text-gray-400 mb-6 flex items-center gap-2">
-        <Navigation className="w-5 h-5 text-primary" />
-        Autonomous Navigation
-      </h3>
-
-      <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider">Start Location</label>
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <MapPin className="h-4 w-4 text-gray-500 group-focus-within:text-primary transition-colors" />
-              </div>
-              <select
-                value={start}
-                onChange={(e) => setStart(e.target.value)}
-                className="block w-full pl-10 pr-10 py-2.5 border border-white/10 rounded-lg bg-dark-800/50 text-gray-300 focus:outline-none focus:bg-dark-800 focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm transition-all appearance-none cursor-pointer hover:bg-dark-800/80"
-              >
-                <option value="">Select Start</option>
-                {nodes.map((node) => <option key={node.id} value={node.id}>{node.label}</option>)}
-              </select>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider">Destination</label>
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <MapPin className="h-4 w-4 text-gray-500 group-focus-within:text-secondary transition-colors" />
-              </div>
-              <select
-                value={destination}
-                onChange={(e) => setDestination(e.target.value)}
-                className="block w-full pl-10 pr-10 py-2.5 border border-white/10 rounded-lg bg-dark-800/50 text-gray-300 focus:outline-none focus:bg-dark-800 focus:border-secondary focus:ring-1 focus:ring-secondary sm:text-sm transition-all appearance-none cursor-pointer hover:bg-dark-800/80"
-              >
-                <option value="">Select Destination</option>
-                {nodes.map((node) => <option key={node.id} value={node.id}>{node.label}</option>)}
-              </select>
-            </div>
-          </div>
+    <div className="space-y-4">
+      <div className="rounded-lg bg-dark-900/45 px-3 py-2">
+        <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] text-gray-500">
+          <Route className="h-3.5 w-3.5 text-primary" />
+          Selected route
         </div>
+        <div className="mt-1 truncate font-mono text-sm text-white">{cleanValue(routeLabel)}</div>
+      </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {isAdmin && (
-            <button
-              type="button"
-              onClick={handleNavigateWs}
-              disabled={!start || !destination}
-              className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-xs font-bold text-dark-900 bg-primary hover:bg-primary-hover disabled:opacity-50 transition-all"
-            >
-              <Send className="h-4 w-4 mr-2" />
-              Navigate (WS)
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={handleSelectRoute}
-            disabled={!canOperate || !start || !destination || status === 'sending'}
-            className="w-full flex justify-center items-center py-3 px-4 border border-white/10 rounded-lg shadow-sm text-xs font-bold text-white bg-dark-800 hover:bg-dark-700 disabled:opacity-50 transition-all"
-          >
-            {status === 'sending' ? 'Selecting...' : 'Select Route (HTTP)'}
-          </button>
-          {isAdmin && (
-            <button
-              type="button"
-              onClick={handleCancel}
-              className="w-full flex justify-center items-center py-3 px-4 border border-red-500/30 rounded-lg shadow-sm text-xs font-bold text-red-200 bg-red-500/10 hover:bg-red-500/20 transition-all"
-            >
-              <XCircle className="h-4 w-4 mr-2" />
-              Cancel (WS)
-            </button>
-          )}
-        </div>
+      <div className="grid gap-3">
+        <LocationSelect
+          label="Start"
+          value={start}
+          onChange={onStartChange}
+          nodes={nodes}
+          accent="text-primary"
+          disabled={selectorsDisabled}
+        />
+        <LocationSelect
+          label="Destination"
+          value={destination}
+          onChange={onDestinationChange}
+          nodes={nodes}
+          accent="text-warning"
+          disabled={selectorsDisabled}
+        />
+      </div>
 
-        {!canOperate && (
-          <p className="text-xs text-gray-500">
-            Read-only access: route changes are disabled for Viewer accounts.
-          </p>
-        )}
+      <div className="grid gap-2">
+        <Button variant="secondary" onClick={handleSelectRoute} disabled={!canSelectRoute}>
+          <Navigation className="h-4 w-4 text-primary" />
+          {status === 'selecting' ? 'Planning route' : 'Plan Route'}
+        </Button>
+        <Button variant="primary" onClick={handleNavigate} disabled={!canNavigate}>
+          <Send className="h-4 w-4" />
+          Start Navigation
+        </Button>
+        {dashboardState?.navigating ? (
+          <Button variant="danger" onClick={handleCancel} disabled={!canOperate}>
+            <XCircle className="h-4 w-4" />
+            Cancel
+          </Button>
+        ) : null}
+      </div>
 
-        {error && (
-          <div className="rounded-lg bg-danger/10 border border-danger/20 p-4 animate-fade-in">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <XCircle className="h-5 w-5 text-danger" />
-              </div>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-danger">
-                  {error}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {status === 'success' && (
-          <div className="rounded-lg bg-success/10 border border-success/20 p-4 animate-fade-in">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <CheckCircle className="h-5 w-5 text-success" />
-              </div>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-success">
-                  Command acknowledged.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-      </form>
+      {!canOperate ? (
+        <InlineState type="info">Read-only role: route commands are disabled.</InlineState>
+      ) : null}
+      {canOperate && !isCommandReady && dashboardState?.robotConnected ? (
+        <InlineState type="info">Connect the command WebSocket before navigating.</InlineState>
+      ) : null}
+      {error ? (
+        <InlineState type="error">
+          <span className="inline-flex items-center gap-2">
+            <XCircle className="h-3.5 w-3.5" />
+            {error}
+          </span>
+        </InlineState>
+      ) : null}
+      {status === 'selected' || status === 'navigating' || status === 'cancelled' ? (
+        <InlineState type="success">
+          <span className="inline-flex items-center gap-2">
+            <CheckCircle className="h-3.5 w-3.5" />
+            {status === 'selected' ? 'Route selected.' : status === 'navigating' ? 'Navigation sent.' : 'Cancel sent.'}
+          </span>
+        </InlineState>
+      ) : null}
     </div>
   );
 };
