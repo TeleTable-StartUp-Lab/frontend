@@ -4,14 +4,14 @@ import { useRobotControl } from '../../context/RobotControlContext';
 import { cleanValue } from './DashboardPrimitives';
 
 export const MAP_ZONES = [
-  { id: 'kitchen', label: 'Raum 2', code: 'R-02', x: 50, y: 50, width: 150, height: 150, coord: { x: 125, y: 100 } },
-  { id: 'Raum1', label: 'Raum 1', code: 'R-01', x: 50, y: 200, width: 150, height: 150, coord: { x: 125, y: 250 } },
-  { id: 'home', label: 'Mensa', code: 'DINING', x: 50, y: 350, width: 250, height: 150, coord: { x: 175, y: 400 }, accent: true },
-  { id: 'Raum3', label: 'Raum 3', code: 'R-03', x: 300, y: 150, width: 100, height: 100, coord: { x: 350, y: 175 } },
-  { id: 'Raum4', label: 'Raum 4', code: 'R-04', x: 500, y: 50, width: 100, height: 100, coord: { x: 550, y: 75 } },
-  { id: 'office', label: 'Raum 5', code: 'R-05', x: 700, y: 50, width: 150, height: 150, coord: { x: 775, y: 105 } },
-  { id: 'Raum6', label: 'Raum 6', code: 'R-06', x: 700, y: 200, width: 150, height: 150, coord: { x: 775, y: 255 } },
-  { id: 'grave', label: 'Apotheke', code: 'PHARM', x: 600, y: 350, width: 250, height: 150, coord: { x: 725, y: 400 }, accent: true },
+  { id: 'raum2', label: 'Raum 2', code: 'R-02', x: 50, y: 50, width: 150, height: 150, coord: { x: 125, y: 100 } },
+  { id: 'raum1', label: 'Raum 1', code: 'R-01', x: 50, y: 200, width: 150, height: 150, coord: { x: 125, y: 250 } },
+  { id: 'mensa', label: 'Mensa', code: 'DINING', x: 50, y: 350, width: 250, height: 150, coord: { x: 175, y: 400 }, accent: true },
+  { id: 'raum3', label: 'Raum 3', code: 'R-03', x: 300, y: 150, width: 100, height: 100, coord: { x: 350, y: 175 } },
+  { id: 'raum4', label: 'Raum 4', code: 'R-04', x: 500, y: 50, width: 100, height: 100, coord: { x: 550, y: 75 } },
+  { id: 'raum5', label: 'Raum 5', code: 'R-05', x: 700, y: 50, width: 150, height: 150, coord: { x: 775, y: 105 } },
+  { id: 'raum6', label: 'Raum 6', code: 'R-06', x: 700, y: 200, width: 150, height: 150, coord: { x: 775, y: 255 } },
+  { id: 'apotheke', label: 'Apotheke', code: 'PHARM', x: 600, y: 350, width: 250, height: 150, coord: { x: 725, y: 400 }, accent: true },
 ];
 
 const ROOM_WALLS = [
