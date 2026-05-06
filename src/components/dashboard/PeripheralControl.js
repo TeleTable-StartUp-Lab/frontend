@@ -37,6 +37,17 @@ const hexToRgb = (hex) => {
   };
 };
 
+const LED_MODES = [
+  { value: 'static', label: 'Static' },
+  { value: 'breathing', label: 'Breathing' },
+  { value: 'loop', label: 'Loop' },
+  { value: 'rainbow', label: 'Rainbow' },
+  { value: 'color_wipe', label: 'Color Wipe' },
+  { value: 'theater_chase', label: 'Theater Chase' },
+  { value: 'scanner', label: 'Scanner' },
+  { value: 'sparkle', label: 'Sparkle' },
+];
+
 const PeripheralControl = ({ onClose }) => {
   const {
     wsStatus,
@@ -65,6 +76,8 @@ const PeripheralControl = ({ onClose }) => {
   const [ledColor, setLedColor] = useState('#ffb450');
   const [brightness, setBrightness] = useState(40);
   const [ledMode, setLedMode] = useState('static');
+  const [autoLightEnabled, setAutoLightEnabled] = useState(true);
+  const [autoLightLuxThreshold, setAutoLightLuxThreshold] = useState(25);
   const [volume, setVolume] = useState(0.3);
   const [beepHz, setBeepHz] = useState(880);
   const [beepMs, setBeepMs] = useState(150);
@@ -75,14 +88,17 @@ const PeripheralControl = ({ onClose }) => {
   const isAnyAudioStreamActive = isAudioStreaming || isMicStreaming || isTtsStreaming;
 
   const ledPreviewStyle = useMemo(
-    () => ({
-      background: ledEnabled
-        ? `rgba(${hexToRgb(ledColor).r}, ${hexToRgb(ledColor).g}, ${hexToRgb(ledColor).b}, ${Math.max(brightness, 5) / 100})`
-        : 'rgba(255,255,255,0.05)',
-      boxShadow: ledEnabled
-        ? `0 0 20px rgba(${hexToRgb(ledColor).r}, ${hexToRgb(ledColor).g}, ${hexToRgb(ledColor).b}, 0.35)`
-        : 'none',
-    }),
+    () => {
+      const { r, g, b } = hexToRgb(ledColor);
+      return {
+        background: ledEnabled
+          ? `rgba(${r}, ${g}, ${b}, ${Math.max(brightness, 5) / 100})`
+          : 'rgba(255,255,255,0.05)',
+        boxShadow: ledEnabled
+          ? `0 0 20px rgba(${r}, ${g}, ${b}, 0.35)`
+          : 'none',
+      };
+    },
     [ledColor, ledEnabled, brightness]
   );
 
@@ -97,7 +113,16 @@ const PeripheralControl = ({ onClose }) => {
       b,
       brightness: Math.max(0, Math.min(100, Math.round(Number(brightness)))) || 0,
     });
-    setFeedback(ok ? 'LED command sent' : 'WebSocket not connected');
+    setFeedback(ok ? 'Manual LED command sent' : 'WebSocket not connected');
+  };
+
+  const handleAutoLightSend = () => {
+    const ok = sendCommand({
+      command: 'LED_AUTO',
+      enabled: autoLightEnabled,
+      lux_threshold: Math.max(0, Math.min(1000, Number(autoLightLuxThreshold))) || 0,
+    });
+    setFeedback(ok ? 'Automatic light command sent' : 'WebSocket not connected');
   };
 
   const handleVolumeSend = () => {
@@ -159,60 +184,102 @@ const PeripheralControl = ({ onClose }) => {
               <Lightbulb className="w-5 h-5 text-amber-300" />
               <h3 className="text-sm font-semibold">LED</h3>
             </div>
-            <div className="h-24 rounded-lg border border-white/10" style={ledPreviewStyle}></div>
-            <label className="flex items-center gap-3 text-xs text-gray-300">
-              <input
-                type="checkbox"
-                checked={ledEnabled}
-                onChange={(e) => setLedEnabled(e.target.checked)}
-                className="h-4 w-4 rounded border-white/20 bg-dark-900"
-              />
-              Enable LED strip
-            </label>
-            <div className="space-y-2">
-              <label className="text-xs text-gray-400">Color</label>
-              <input
-                type="color"
-                value={ledColor}
-                onChange={(e) => setLedColor(e.target.value)}
-                className="w-full h-10 rounded border border-white/10 bg-dark-900"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs text-gray-400">Mode</label>
-              <select
-                value={ledMode}
-                onChange={(e) => setLedMode(e.target.value)}
-                className="w-full h-10 rounded border border-white/10 bg-dark-900 text-white px-3 text-xs"
-              >
-                <option value="static">Static</option>
-                <option value="breathing">Breathing</option>
-                <option value="loop">Loop</option>
-                <option value="rainbow">Rainbow</option>
-              </select>
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs text-gray-400">
-                <span>Brightness</span>
-                <span className="font-mono text-white">{brightness}%</span>
+            <div className="rounded-lg border border-white/10 bg-dark-900/40 p-3 space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-semibold text-white">Manual LED</h4>
+                <label className="flex items-center gap-2 text-xs text-gray-300">
+                  <span>{ledEnabled ? 'On' : 'Off'}</span>
+                  <input
+                    type="checkbox"
+                    checked={ledEnabled}
+                    onChange={(e) => setLedEnabled(e.target.checked)}
+                    className="h-4 w-4 rounded border-white/20 bg-dark-900"
+                  />
+                </label>
               </div>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                step="1"
-                value={brightness}
-                onChange={(e) => setBrightness(Number(e.target.value))}
-                className="w-full accent-primary"
-              />
+              <div className="h-16 rounded-lg border border-white/10" style={ledPreviewStyle}></div>
+              <div className="grid grid-cols-1 gap-3">
+                <div className="space-y-2">
+                  <label className="text-xs text-gray-400">Color</label>
+                  <input
+                    type="color"
+                    value={ledColor}
+                    onChange={(e) => setLedColor(e.target.value)}
+                    className="w-full h-10 rounded border border-white/10 bg-dark-900"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs text-gray-400">Mode</label>
+                  <select
+                    value={ledMode}
+                    onChange={(e) => setLedMode(e.target.value)}
+                    className="w-full h-10 rounded border border-white/10 bg-dark-900 text-white px-3 text-xs"
+                  >
+                    {LED_MODES.map((mode) => (
+                      <option key={mode.value} value={mode.value}>{mode.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs text-gray-400">
+                  <span>Brightness</span>
+                  <span className="font-mono text-white">{brightness}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="1"
+                  value={brightness}
+                  onChange={(e) => setBrightness(Number(e.target.value))}
+                  className="w-full accent-primary"
+                />
+              </div>
+              <button
+                onClick={handleLedSend}
+                className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-primary text-dark-900 font-semibold text-xs hover:bg-primary-hover transition-colors"
+                disabled={wsStatus !== 'connected'}
+              >
+                <span>Apply Manual LED</span>
+              </button>
             </div>
-            <button
-              onClick={handleLedSend}
-              className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-primary text-dark-900 font-semibold text-xs hover:bg-primary-hover transition-colors"
-              disabled={wsStatus !== 'connected'}
-            >
-              <span>Apply LED</span>
-            </button>
+            <div className="rounded-lg border border-amber-300/20 bg-amber-300/10 p-3 space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-semibold text-amber-100">Automatic Night Light</h4>
+                <label className="flex items-center gap-2 text-xs text-gray-200">
+                  <span>{autoLightEnabled ? 'Enabled' : 'Disabled'}</span>
+                  <input
+                    type="checkbox"
+                    checked={autoLightEnabled}
+                    onChange={(e) => setAutoLightEnabled(e.target.checked)}
+                    className="h-4 w-4 rounded border-white/20 bg-dark-900"
+                  />
+                </label>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs text-gray-400">
+                  <span>On below / off at</span>
+                  <span className="font-mono text-white">{Math.round(autoLightLuxThreshold)} lux</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="1000"
+                  step="5"
+                  value={autoLightLuxThreshold}
+                  onChange={(e) => setAutoLightLuxThreshold(Number(e.target.value))}
+                  className="w-full accent-amber-300"
+                />
+              </div>
+              <button
+                onClick={handleAutoLightSend}
+                className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-amber-300/40 text-amber-100 font-semibold text-xs hover:bg-amber-300/10 transition-colors"
+                disabled={wsStatus !== 'connected'}
+              >
+                <span>Save Auto Trigger</span>
+              </button>
+            </div>
           </div>
 
           <div className="rounded-xl border border-white/10 bg-white/5 p-4 space-y-4">
